@@ -76,24 +76,44 @@
 						style: {
 							'content': 'data(id)',
                             'background-color': 'data(color)',
-                            'color': 'data(color)'
+                            'color': 'black'
 						}
 					},
 					{
 						selector: 'edge',
 						style: {
 							'curve-style': 'bezier',
-							'target-arrow-shape': 'triangle'
+							'target-arrow-shape': 'triangle',
+                            'width': 1
 						}
 					}
 				],
                 elements: elements
 			});
 
-            cy.on('tap', 'node', function(node) {
+            cy.on('mouseover', 'node', function(node) {
                 var data = node.target.data();
                 document.getElementById('course-descr').innerHTML = data.id + ": " + data.title;
+                node.target.animate({
+                    style: {
+                      borderColor: "#2D3142",
+                      borderWidth: 3
+                    }
+                });
             });
+            cy.on('mouseout', 'node', function(node) {
+                var data = node.target.data();
+                document.getElementById('course-descr').innerHTML = "";
+                node.target.animate({
+                    style: {
+                      borderColor: "#ABC4AB",
+                      borderWidth: 0
+                    }
+                  }, {
+                    duration: 200
+                  });
+            });
+
 
             var cb = document.getElementById('showUnscheduled');
             var showUnscheduledClick = function(checked) {
@@ -113,7 +133,7 @@
 </head>
 
 <body>
-	<h1>cytoscape-popper demo</h1>
+	<h1>Columbia University Courses Map</h1>
     <div>
         <input type="checkbox" id="showUnscheduled">
         <label for="showUnscheduled">Show unscheduled classes</label>

@@ -21,7 +21,7 @@ class Converter:
                     'id': num,
                     'title': title,
                     'scheduled': scheduled,
-                    'color': 'black' if scheduled else 'grey',
+                    'color': '#ABC4AB' if scheduled else 'grey',
                     }
                 })
         self.courses[num] = {
