@@ -14,7 +14,7 @@ class Converter:
         self.courses = {}
 
 
-    def addCourse(self, num, title, scheduled):
+    def addCourse(self, num, title, scheduled, prereq_full=""):
         if scheduled:
             self.elements['nodes'].append({
                 'data': {
@@ -22,6 +22,7 @@ class Converter:
                     'title': title,
                     'scheduled': scheduled,
                     'color': '#ABC4AB' if scheduled else 'grey',
+                    'prereq_full': prereq_full
                     }
                 })
         self.courses[num] = {
@@ -37,16 +38,17 @@ class Converter:
             num = course['num'][0]
             
             prereq = []
+            prereq_full = ""
             # TODO: separate AND / OR
-            # TODO: put full description if it's text
             if len(course['prereq'])>0 and course['prereq'][0] == 'Prerequisites: (':
+                prereq_full = "".join(course['prereq'])
                 for p in course['prereq'][1:]:
                     if Converter.courseNumPattern.match(p):
                         prereq.append(p)
 
             
             print(num + " : " + title + " : " + str(prereq))
-            self.addCourse(num, title, course['scheduled'])
+            self.addCourse(num, title, course['scheduled'], prereq_full)
             
             if course['scheduled']:
                 for pre in prereq:

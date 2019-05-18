@@ -93,7 +93,8 @@
 
             cy.on('mouseover', 'node', function(node) {
                 var data = node.target.data();
-                document.getElementById('course-descr').innerHTML = data.id + ": " + data.title;
+                document.getElementById('course-descr').innerHTML = data.id + ": " + data.title 
+                    + "<br/>" + data.prereq_full;
                 node.target.animate({
                     style: {
                       borderColor: "#2D3142",
