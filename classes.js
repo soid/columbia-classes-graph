@@ -44,8 +44,17 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     /* Mouse over */
-    cy.on('mouseover', 'node', function(node) {
+    var selectedNode = null;
+    var showNodeDeps = function(node) {
         var data = node.target.data();
+        if (selectedNode != null) {
+            if (selectedNode.target.data().id == node.target.data().id) {
+                openClassDetails(node);
+                return;
+            }
+            hideNodeDeps(selectedNode);
+        }
+        selectedNode = node;
         document.getElementById('course-descr').innerHTML = data.id + ": " + data.title
             + " " + data.points
             + "<br/>" + data.prereq_full;
@@ -79,10 +88,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 borderWidth: 3
             }
         }, aniOpt);
-    });
+    };
+    cy.on('mouseover', 'node', showNodeDeps);
+    cy.on('tap', 'node', showNodeDeps);
 
     /* Mouse out */
-    cy.on('mouseout', 'node', function(node) {
+    var hideNodeDeps = function(node) {
+        selectedNode = null;
         // cancel grey out unrelated classes
         cy.nodes().not(node.target.predecessors().nodes()).animate({
             style: {
@@ -111,10 +123,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 borderWidth: 0
             }
         }, aniOpt);
-    });
+    };
+    cy.on('mouseout', 'node', hideNodeDeps);
 
     /* node click */
-    cy.on('tap', 'node', function(node) {
+    var openClassDetails = function(node) {
         var classId = node.target.data().id;
         var url = "http://bulletin.columbia.edu/search/?P=" + classId.replace(String.fromCharCode(160), "+");
         try { // your browser may block popups
@@ -122,7 +135,8 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch(e){ // fall back on url change
             window.location.href = url;
         }
-    });
+    };
+    cy.on('click', 'node', openClassDetails);
 
     document.getElementById("generationDate").innerText = generationDate;
 });
