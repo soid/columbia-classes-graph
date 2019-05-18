@@ -2,7 +2,6 @@ import re
 import json
 
 
-
 class Converter:
     courseNumPattern = re.compile(r'^\w')
     
@@ -13,14 +12,14 @@ class Converter:
 
         self.courses = {}
 
-
-    def addCourse(self, num, title, scheduled, prereq_full=""):
+    def add_course(self, num, title, scheduled, points="", prereq_full=""):
         if scheduled:
             self.elements['nodes'].append({
                 'data': {
                     'id': num,
                     'title': title,
                     'scheduled': scheduled,
+                    'points': points,
                     'color': '#ABC4AB' if scheduled else 'grey',
                     'prereq_full': prereq_full
                     }
@@ -38,37 +37,25 @@ class Converter:
         for course in data:
             title = course['title'][0]
             num = course['num'][0]
-            
-            prereq = []
-            prereq_full = ""
-            # TODO: separate AND / OR
-            if len(course['prereq'])>0 and course['prereq'][0] == 'Prerequisites: (':
-                prereq_full = "".join(course['prereq'])
-                for p in course['prereq'][1:]:
-                    if Converter.courseNumPattern.match(p):
-                        prereq.append(p)
+            points = course['points'][0]
 
-            
-            print(num + " : " + title + " : " + str(prereq))
-            self.addCourse(num, title, course['scheduled'], prereq_full)
+            prereq_full = "".join(course['prereq'])
+            print(num + " : " + title)
+            self.add_course(num, title, course['scheduled'], points, prereq_full)
             
         # create edges
         for course in data:
-            title = course['title'][0]
             num = course['num'][0]
-            
             prereq = []
-            prereq_full = ""
             # TODO: separate AND / OR
             if len(course['prereq'])>0 and course['prereq'][0] == 'Prerequisites: (':
-                prereq_full = "".join(course['prereq'])
                 for p in course['prereq'][1:]:
                     if Converter.courseNumPattern.match(p):
                         prereq.append(p)
             if course['scheduled']:
                 for pre in prereq:
-                    if not pre in self.courses:
-                        self.addCourse(pre, pre, True)
+                    if pre not in self.courses:
+                        self.add_course(pre, pre, True)
                     
                     if not self.courses[pre]['scheduled']:
                         continue
@@ -81,6 +68,7 @@ class Converter:
                     })
                 
         return self.elements
+
 
 f = open('data/result.json', 'r')
 data = json.loads(f.read())

@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
     cy.on('mouseover', 'node', function(node) {
         var data = node.target.data();
         document.getElementById('course-descr').innerHTML = data.id + ": " + data.title
+            + " " + data.points + " points."
             + "<br/>" + data.prereq_full;
 
         // grey out unrelated classes
