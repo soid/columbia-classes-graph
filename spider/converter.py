@@ -26,14 +26,12 @@ class Converter:
                     }
                 })
         self.courses[num] = {
+            'num': num,
             'title': title,
             'scheduled': scheduled
         }
 
-
     def parse(self, data):
-        id2course = {}
-
         # create nodes
         for course in data:
             title = course['title'][0]
@@ -55,8 +53,12 @@ class Converter:
                         prereq.append(p)
             if course['scheduled']:
                 for pre in prereq:
-                    if pre not in self.courses:
+                    c = self.fuzzy_find(pre)
+                    if not c:
                         self.add_course(pre, pre, True)
+                    elif c['num'] != pre:
+                        pre = c['num']
+
                     
                     if not self.courses[pre]['scheduled']:
                         continue
@@ -69,6 +71,15 @@ class Converter:
                     })
                 
         return self.elements
+
+    # some courses don't match exact characters. Try to find them
+    def fuzzy_find(self, num):
+        if num in self.courses:
+            return self.courses[num]
+        for c in self.courses.keys():
+            if num in c:
+                return self.courses[c]
+        return None
 
 
 f = open('data/result.json', 'r')
@@ -83,4 +94,3 @@ f.write("elements = ")
 f.write(json.dumps(elements))
 f.write(";\ngenerationDate = '" + datetime.datetime.now().strftime("%m/%d/%Y") + "';")
 f.close()
-                
