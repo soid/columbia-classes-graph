@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         layout: {
             name: 'breadthfirst',
+            grid: true,
+            animate: true,
             maximal: true,
             directed: true,
         },
