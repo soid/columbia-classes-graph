@@ -18,9 +18,11 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 selector: 'node',
                 style: {
-                    'content': 'data(id)',
+                    'content': 'data(num)',
                     'background-color': 'data(color)',
                     'color': 'black',
+                    'height': 'data(size)',
+                    'width': 'data(size)'
                 }
             },
             {
