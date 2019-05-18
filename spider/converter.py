@@ -33,6 +33,8 @@ class Converter:
 
     def parse(self, data):
         id2course = {}
+
+        # create nodes
         for course in data:
             title = course['title'][0]
             num = course['num'][0]
@@ -50,6 +52,19 @@ class Converter:
             print(num + " : " + title + " : " + str(prereq))
             self.addCourse(num, title, course['scheduled'], prereq_full)
             
+        # create edges
+        for course in data:
+            title = course['title'][0]
+            num = course['num'][0]
+            
+            prereq = []
+            prereq_full = ""
+            # TODO: separate AND / OR
+            if len(course['prereq'])>0 and course['prereq'][0] == 'Prerequisites: (':
+                prereq_full = "".join(course['prereq'])
+                for p in course['prereq'][1:]:
+                    if Converter.courseNumPattern.match(p):
+                        prereq.append(p)
             if course['scheduled']:
                 for pre in prereq:
                     if not pre in self.courses:

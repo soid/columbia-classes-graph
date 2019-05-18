@@ -91,31 +91,75 @@
                 elements: elements
 			});
 
+            var aniOpt = {
+                duration: 200
+            };
+
+            /* Mouse over */
             cy.on('mouseover', 'node', function(node) {
                 var data = node.target.data();
                 document.getElementById('course-descr').innerHTML = data.id + ": " + data.title 
                     + "<br/>" + data.prereq_full;
+
                 node.target.animate({
                     style: {
                       borderColor: "#2D3142",
                       borderWidth: 3
                     }
-                });
+                }, aniOpt);
+
+                // grey out unrelated classes
+                cy.nodes().not(node.target.predecessors().nodes()).not(node.target).animate({
+                    style: {
+                      backgroundOpacity: 0.2,
+                    }
+                  }, aniOpt);
+
+                // bold lines for related classes
+                node.target.predecessors().edges().animate({
+                    style: {
+                      width: 4,
+                    }
+                  }, aniOpt);
+
+                // borders for related classes
+                node.target.predecessors().nodes().animate({
+                    style: {
+                      borderColor: "#2D3142",
+                      borderWidth: 3
+                    }
+                  }, aniOpt);
             });
+            
+            /* Mouse out */
             cy.on('mouseout', 'node', function(node) {
                 var data = node.target.data();
                 document.getElementById('course-descr').innerHTML = "";
+
+                // cancel grey out unrelated classes
+                cy.nodes().not(node.target.predecessors().nodes()).animate({
+                    style: {
+                      backgroundOpacity: 1,
+                    }
+                  }, aniOpt);
+
+                // cancel bold lines for related classes
+                node.target.predecessors().edges().animate({
+                    style: {
+                      width: 1,
+                    }
+                  }, aniOpt);
+
+                // cancel borders for related classes
                 node.target.animate({
                     style: {
                       borderColor: "#ABC4AB",
                       borderWidth: 0
                     }
-                  }, {
-                    duration: 200
-                  });
+                  }, aniOpt);
             });
 
-
+            /* Menu */
             var cb = document.getElementById('showUnscheduled');
             var showUnscheduledClick = function(checked) {
                 cy.nodes().forEach(function (node) {
