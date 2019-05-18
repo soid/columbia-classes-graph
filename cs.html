@@ -3,49 +3,13 @@
 <html>
 
 <head>
-	<title>cytoscape-popper.js demo</title>
+	<title>Columbia University: Computer Science Courses Map</title>
 
 	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
 	<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
-    <script src="https://unpkg.com/dagre@0.7.4/dist/dagre.js"></script>
-    <script src="cytoscape-dagre.js"></script>
-
-	<!-- for testing with local version of cytoscape.js -->
-	<!--<script src="../cytoscape.js/build/cytoscape.js"></script>-->
-
-  <script src="https://unpkg.com/popper.js@1.14.7/dist/umd/popper.js"></script>
 	<script src="cytoscape-popper.js"></script>
     <script src="data/cs-data.js"></script>
-
-	<style>
-		body {
-			font-family: helvetica neue, helvetica, liberation sans, arial, sans-serif;
-			font-size: 14px
-		}
-
-		#cy {
-			position: absolute;
-			left: 0;
-			top: 10em;
-			bottom: 0;
-			right: 0;
-			z-index: 1;
-		}
-
-		h1 {
-			opacity: 0.5;
-			font-size: 1em;
-			font-weight: bold;
-		}
-
-		.popper-div { /* just an example */
-			border: 1px solid red;
-			background: #fff;
-			z-index: 9999;
-			padding: 0.25em;
-			pointer-events: none;
-		}
-	</style>
+	<link rel="stylesheet" href="style.css">
 
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
@@ -60,14 +24,8 @@
 
                 layout: {
                     name: 'breadthfirst',
-//                    spacingFactor: 3.5,
                     maximal: true,
                     directed: true,
-/*                    fit: false,
-                    rankSep: 100,
-                    nodeSep: 150,
-                    padding: 100,*/
-//                    ranker: 'tight-tree'
                   },
 
 				style: [
@@ -101,6 +59,14 @@
                 document.getElementById('course-descr').innerHTML = data.id + ": " + data.title 
                     + "<br/>" + data.prereq_full;
 
+				// grey out unrelated classes
+				cy.nodes().not(node.target.predecessors().nodes()).not(node.target).animate({
+					style: {
+						opacity: 0.2,
+					}
+				}, aniOpt);
+
+                // bold nodes for related classes
                 node.target.animate({
                     style: {
                       borderColor: "#2D3142",
@@ -108,14 +74,7 @@
                     }
                 }, aniOpt);
 
-                // grey out unrelated classes
-                cy.nodes().not(node.target.predecessors().nodes()).not(node.target).animate({
-                    style: {
-                      backgroundOpacity: 0.2,
-                    }
-                  }, aniOpt);
-
-                // bold lines for related classes
+                // bold edges for related classes
                 node.target.predecessors().edges().animate({
                     style: {
                       width: 4,
@@ -139,9 +98,16 @@
                 // cancel grey out unrelated classes
                 cy.nodes().not(node.target.predecessors().nodes()).animate({
                     style: {
-                      backgroundOpacity: 1,
+						opacity: 1,
                     }
                   }, aniOpt);
+
+				// bold nodes for related classes
+				node.target.animate({
+					style: {
+						borderWidth: 0
+					}
+				}, aniOpt);
 
                 // cancel bold lines for related classes
                 node.target.predecessors().edges().animate({
@@ -151,12 +117,12 @@
                   }, aniOpt);
 
                 // cancel borders for related classes
-                node.target.animate({
-                    style: {
-                      borderColor: "#ABC4AB",
-                      borderWidth: 0
-                    }
-                  }, aniOpt);
+				node.target.predecessors().nodes().animate({
+					style: {
+						borderColor: "#2D3142",
+						borderWidth: 0
+					}
+				}, aniOpt);
             });
 
             /* Menu */
@@ -178,7 +144,7 @@
 </head>
 
 <body>
-	<h1>Columbia University Courses Map</h1>
+	<h1>Columbia University: Computer Science Courses Map</h1>
     <div>
         <input type="checkbox" id="showUnscheduled">
         <label for="showUnscheduled">Show unscheduled classes</label>
