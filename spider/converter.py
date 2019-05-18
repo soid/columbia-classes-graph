@@ -1,3 +1,4 @@
+import datetime
 import re
 import json
 
@@ -37,7 +38,7 @@ class Converter:
         for course in data:
             title = course['title'][0]
             num = course['num'][0]
-            points = course['points'][0]
+            points = course['points']
 
             prereq_full = "".join(course['prereq'])
             print(num + " : " + title)
@@ -80,5 +81,6 @@ elements = obj.parse(data)
 f = open('data/cs-data.js', 'w')
 f.write("elements = ")
 f.write(json.dumps(elements))
+f.write(";\ngenerationDate = '" + datetime.datetime.now().strftime("%m/%d/%Y") + "';")
 f.close()
                 

@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
     cy.on('mouseover', 'node', function(node) {
         var data = node.target.data();
         document.getElementById('course-descr').innerHTML = data.id + ": " + data.title
-            + " " + data.points + " points."
+            + " " + data.points
             + "<br/>" + data.prereq_full;
 
         // grey out unrelated classes
@@ -119,4 +119,6 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = url;
         }
     });
+
+    document.getElementById("generationDate").innerText = generationDate;
 });

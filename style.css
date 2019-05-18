@@ -25,6 +25,12 @@ h1 {
 }
 
 #info {
+    position: absolute;
     right: 8px;
-    width: 100%;
+    bottom: 8px;
+}
+
+a {
+    color: #6581D7;
+    text-decoration: none;
 }
