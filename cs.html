@@ -7,150 +7,18 @@
 
 	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
 	<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
-	<script src="cytoscape-popper.js"></script>
     <script src="data/cs-data.js"></script>
 	<link rel="stylesheet" href="style.css">
-
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-
-            var id2node = {};
-            for (var i=0; i<elements.nodes.length; i++) {
-                id2node[elements.nodes[i].data.id] = elements.nodes[i];
-            }
-
-			var cy = window.cy = cytoscape({
-				container: document.getElementById('cy'),
-
-                layout: {
-                    name: 'breadthfirst',
-                    maximal: true,
-                    directed: true,
-                  },
-
-				style: [
-					{
-						selector: 'node',
-						style: {
-							'content': 'data(id)',
-                            'background-color': 'data(color)',
-                            'color': 'black'
-						}
-					},
-					{
-						selector: 'edge',
-						style: {
-							'curve-style': 'bezier',
-							'target-arrow-shape': 'triangle',
-                            'width': 1
-						}
-					}
-				],
-                elements: elements
-			});
-
-            var aniOpt = {
-                duration: 200
-            };
-
-            /* Mouse over */
-            cy.on('mouseover', 'node', function(node) {
-                var data = node.target.data();
-                document.getElementById('course-descr').innerHTML = data.id + ": " + data.title 
-                    + "<br/>" + data.prereq_full;
-
-				// grey out unrelated classes
-				cy.nodes().not(node.target.predecessors().nodes()).not(node.target).animate({
-					style: {
-						opacity: 0.2,
-					}
-				}, aniOpt);
-
-                // bold nodes for related classes
-                node.target.animate({
-                    style: {
-                      borderColor: "#2D3142",
-                      borderWidth: 3
-                    }
-                }, aniOpt);
-
-                // bold edges for related classes
-                node.target.predecessors().edges().animate({
-                    style: {
-                      width: 4,
-                    }
-                  }, aniOpt);
-
-                // borders for related classes
-                node.target.predecessors().nodes().animate({
-                    style: {
-                      borderColor: "#2D3142",
-                      borderWidth: 3
-                    }
-                  }, aniOpt);
-            });
-            
-            /* Mouse out */
-            cy.on('mouseout', 'node', function(node) {
-                var data = node.target.data();
-                document.getElementById('course-descr').innerHTML = "";
-
-                // cancel grey out unrelated classes
-                cy.nodes().not(node.target.predecessors().nodes()).animate({
-                    style: {
-						opacity: 1,
-                    }
-                  }, aniOpt);
-
-				// bold nodes for related classes
-				node.target.animate({
-					style: {
-						borderWidth: 0
-					}
-				}, aniOpt);
-
-                // cancel bold lines for related classes
-                node.target.predecessors().edges().animate({
-                    style: {
-                      width: 1,
-                    }
-                  }, aniOpt);
-
-                // cancel borders for related classes
-				node.target.predecessors().nodes().animate({
-					style: {
-						borderColor: "#2D3142",
-						borderWidth: 0
-					}
-				}, aniOpt);
-            });
-
-            /* Menu */
-            var cb = document.getElementById('showUnscheduled');
-            var showUnscheduledClick = function(checked) {
-                cy.nodes().forEach(function (node) {
-                    if (!checked && !node.data()['scheduled']) {
-                        node.hide();
-                    } else {
-                        node.show();
-                    }
-                })
-            };
-            showUnscheduledClick(false);
-
-            cb.addEventListener('click', function (e) { showUnscheduledClick(e.target.checked) });
-		});
-	</script>
 </head>
 
 <body>
-	<h1>Columbia University: Computer Science Courses Map</h1>
-    <div>
-        <input type="checkbox" id="showUnscheduled">
-        <label for="showUnscheduled">Show unscheduled classes</label>
-    </div>
-    <div id="course-descr"></div>
+	<h1>Columbia University: CS Course Map</h1>
 	<div id="cy"></div>
+	<div id="bottom">
+		<div id="course-descr"></div>
+		<div id="info"><a href="https://github.com/soid/columbia-classes-graph">Source</a></div>
+	</div>
+	<script src="classes.js"></script>
 </body>
 
 </html>
