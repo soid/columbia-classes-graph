@@ -65,14 +65,14 @@ class Converter:
                 
         return self.elements
 
-f = open('spider/result.json', 'r')
+f = open('data/result.json', 'r')
 data = json.loads(f.read())
 f.close()
 
 obj = Converter()
 elements = obj.parse(data)
 
-f = open('cs-data.js', 'w')
+f = open('data/cs-data.js', 'w')
 f.write("elements = ")
 f.write(json.dumps(elements))
 f.close()
