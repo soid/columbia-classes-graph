@@ -14,33 +14,29 @@ class Converter:
         self.courses = {}
         self.tmp_id = 1
 
-    def add_course(self, num, title, scheduled, points="", prereq_full=""):
-        num = num.replace("\u00a0", " ")
-        if scheduled:
+    def add_course(self, course):
+        course['num'] = course['num'].replace("\u00a0", " ")
+        if course['scheduled']:
             self.elements['nodes'].append({
                 'data': {
-                    'id': num,
-                    'num': num,
-                    'title': title,
-                    'scheduled': scheduled,
-                    'points': points,
-                    'color': '#ABC4AB' if scheduled else 'grey',
-                    'prereq_full': prereq_full,
-                    'size': 50
+                    # crawled
+                    **course,
+                    # derived
+                    **{
+                        'id': course['num'],
+                        'color': '#ABC4AB' if course['scheduled'] else 'grey',
+                        'size': 50,
                     }
-                })
-        self.courses[num] = {
-            'num': num,
-            'title': title,
-            'scheduled': scheduled
-        }
+                }
+            })
+        self.courses[course['num']] = course
 
     def add_prereq(self, pre, num):
         pre = pre.replace("\u00a0", " ")
         num = num.replace("\u00a0", " ")
         c = self.fuzzy_find(pre)
         if not c:
-            self.add_course(pre, pre, True)
+            self.add_course({'num': pre, 'title': pre, 'points': '', 'prereq': '', 'scheduled': True})
         elif c['num'] != pre:
             pre = c['num']
 
@@ -57,17 +53,14 @@ class Converter:
     def parse(self, data):
         # create nodes
         for course in data:
-            title = course['title'][0]
-            num = course['num'][0]
-            points = course['points']
-
-            prereq_full = "".join(course['prereq'])
+            title = course['title']
+            num = course['num']
             print(num + " : " + title)
-            self.add_course(num, title, course['scheduled'], points, prereq_full)
+            self.add_course(course)
             
         # create edges
         for course in data:
-            num = course['num'][0]
+            num = course['num']
             prereq = self.retrieve_prereqs(course['prereq'])
             if course['scheduled']:
                 for pre in prereq:
@@ -88,11 +81,11 @@ class Converter:
                 return self.courses[c]
         return None
 
-    PREREQ_PATTERN = re.compile(r'([A-Z]{4} [A-Z][0-9]{4}|[A-Z][0-9]{4}|[oO][rR]|[aA][nN][dD])')
+    PREREQ_PATTERN = re.compile(r'([A-Z]{4} [A-Z][A-Z]?[0-9]{4}|[A-Z][A-Z]?[0-9]{4}|[oO][rR]|[aA][nN][dD])')
 
     @staticmethod
-    def retrieve_prereqs(prereq_list):
-        matches = Converter.PREREQ_PATTERN.findall("".join(prereq_list))
+    def retrieve_prereqs(prereq_str):
+        matches = Converter.PREREQ_PATTERN.findall(prereq_str)
 
         prereq = []
         mode = "and"
@@ -118,6 +111,7 @@ class Converter:
 
 
 if __name__ == "__main__":
+    # f = open('data/all-classes.json', 'r')
     f = open('data/result.json', 'r')
     data = json.loads(f.read())
     f.close()

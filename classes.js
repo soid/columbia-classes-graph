@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedNode = node;
         document.getElementById('course-descr').innerHTML = data.id + ": " + data.title
             + " " + data.points
-            + "<br/>" + data.prereq_full;
+            + "<br/>" + data.prereq;
 
         // grey out unrelated classes
         cy.nodes().not(node.target.predecessors().nodes()).not(node.target).animate({

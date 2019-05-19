@@ -16,6 +16,8 @@ class TestConverter(TestCase):
         TestConverter.compare("Prerequisites: Working knowledge of at least one programming language,"
                               " and some background in probability and statistics.",
                               [])
+        TestConverter.compare("Prerequisites: (MATH UN1202) or the equivalent",
+                              ["MATH UN1202"])
 
     @staticmethod
     def compare(prereq_str, expected):
