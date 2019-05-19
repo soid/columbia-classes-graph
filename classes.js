@@ -136,7 +136,6 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = url;
         }
     };
-    cy.on('click', 'node', openClassDetails);
 
     document.getElementById("generationDate").innerText = generationDate;
 });
