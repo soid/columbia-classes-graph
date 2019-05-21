@@ -3,16 +3,22 @@
 <html>
 
 <head>
-	<title>Columbia University: Computer Science Courses Map</title>
+	<title>Columbia University: Courses Map</title>
 
 	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
 	<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
-    <script src="data/cs-data.js"></script>
+    <script src="data/classes-data.js"></script>
 	<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-	<h1>Columbia University: CS Course Map</h1>
+	<h1 class="site-title">Columbia University: Course Map</h1>
+
+	<div class="top-hud">
+		Department:
+		<select id="codesList"></select>
+	</div>
+
 	<div id="cy"></div>
 	<div id="bottom">
 		<div id="course-descr"></div>

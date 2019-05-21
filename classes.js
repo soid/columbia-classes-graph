@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* show classes by code */
     var showClassesByCode = function(code) {
+        cy.elements().remove();
         var shown = new Set();
         elements.nodes.forEach(n => {
             if (n.data.code == code) {
@@ -169,6 +170,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
+
+    // show the graph
     document.getElementById("generationDate").innerText = generationDate;
+
+    var sel = document.getElementById("codesList");
+    sel.onchange = function (e) {
+        showClassesByCode(e.target.value);
+    };
+
+    Object.keys(classCodes).forEach(function (k) {
+        var opt = document.createElement('option');
+        opt.appendChild(document.createTextNode(k));
+        opt.value = k;
+        sel.appendChild(opt);
+    });
+
+    // pick COMS for starter
     showClassesByCode("COMS");
+    sel.value = "COMS";
 });

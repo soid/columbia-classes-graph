@@ -12,11 +12,13 @@ class Converter:
         self.elements['edges'] = []
 
         self.courses = {}
+        self.codes = set()
         self.tmp_id = 1
 
     def add_course(self, course):
         course['num'] = course['num']
         if course['scheduled']:
+            self.codes.add(course['code'])
             self.elements['nodes'].append({
                 'data': {
                     # crawled
@@ -36,8 +38,8 @@ class Converter:
         num = num
         c = self.fuzzy_find(pre)
         if not c:
+            # class is not listed
             return
-            # self.add_course({'num': pre, 'title': pre, 'points': '', 'prereq': '', 'scheduled': True})
         elif c['num'] != pre:
             pre = c['num']
 
@@ -120,8 +122,20 @@ if __name__ == "__main__":
     obj = Converter()
     elements = obj.parse(data)
 
-    f = open('data/cs-data.js', 'w')
+    f = open('data/classes-data.js', 'w')
     f.write("elements = ")
     f.write(json.dumps(elements))
     f.write(";\ngenerationDate = '" + datetime.datetime.now().strftime("%m/%d/%Y") + "';")
+
+    # generate a list of all codes
+    codes = list(obj.codes)
+    codes.sort()
+    codesDict = {}
+    for c in codes:
+        if c == "COMS":
+            codesDict[c] = "Computer Science"
+        else:
+            codesDict[c] = c
+    f.write(";\nclassCodes = " + json.dumps(codesDict) + ";")
+
     f.close()
