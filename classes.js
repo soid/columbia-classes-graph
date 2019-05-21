@@ -177,7 +177,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var sel = document.getElementById("codesList");
     sel.onchange = function (e) {
-        showClassesByCode(e.target.value);
+        var code = e.target.value;
+        window.history.pushState("object or string", "Title", "index.html?code=" + code);
+        showClassesByCode(code);
     };
 
     Object.keys(classCodes).forEach(function (k) {
@@ -188,7 +190,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // pick COMS for starter
-    var defaultCode = "COMS";
-    showClassesByCode(defaultCode);
-    sel.value = defaultCode;
+    var url = new URL(window.location.href);
+    var selectedCode = url.searchParams.get("code") || "COMS";
+    showClassesByCode(selectedCode);
+    sel.value = selectedCode;
 });
