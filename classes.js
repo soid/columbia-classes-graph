@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     Object.keys(classCodes).forEach(function (k) {
         var opt = document.createElement('option');
-        opt.appendChild(document.createTextNode(classCodes[k] + " (" + k + ")"));
+        opt.appendChild(document.createTextNode(classCodes[k] + ((classCodes[k] == k) ? "" : (" (" + k + ")"))));
         opt.value = k;
         sel.appendChild(opt);
     });
