@@ -19,17 +19,19 @@ class Converter:
         course['num'] = course['num']
         if course['scheduled']:
             self.codes.add(course['code'])
-            self.elements['nodes'].append({
-                'data': {
-                    # crawled
-                    **course,
-                    # derived
-                    **{
-                        'id': course['num'],
-                        'color': '#ABC4AB' if course['scheduled'] else 'grey',
-                        'size': 50,
-                    }
+            data = {
+                # crawled
+                **course,
+                # derived
+                **{
+                    'id': course['num'],
+                    'color': '#ABC4AB' if course['scheduled'] else 'grey',
+                    'size': 50,
                 }
+            }
+            del data['entry']
+            self.elements['nodes'].append({
+                'data': data
             })
         self.courses[course['num']] = course
 
