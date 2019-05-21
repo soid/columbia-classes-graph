@@ -152,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var layout = cy.layout({
             name: 'breadthfirst',
+            spacingFactor: 2.3,
             grid: true,
             animate: true,
             maximal: true,
