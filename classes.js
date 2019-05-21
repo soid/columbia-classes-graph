@@ -187,6 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // pick COMS for starter
-    showClassesByCode("COMS");
-    sel.value = "COMS";
+    var defaultCode = "COMS";
+    showClassesByCode(defaultCode);
+    sel.value = defaultCode;
 });

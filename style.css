@@ -23,6 +23,16 @@ h1 {
     font-weight: bold;
 }
 
+.top-hud {
+    position: absolute;
+    top: 1em;
+    left: 16px;
+}
+
+#course-descr {
+    /*width: 75%;*/
+}
+
 #bottom {
     position: absolute;
     bottom: 0;
@@ -35,13 +45,38 @@ h1 {
     bottom: 8px;
 }
 
+#source-code-small {
+    display: none;
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+}
+
 a {
     color: #6581D7;
     text-decoration: none;
 }
 
-.top-hud {
-    position: absolute;
-    top: 1em;
-    left: 16;
+/* for mobile */
+
+@media only screen and (max-width: 800px) {
+    .site-title {
+        position: relative;
+        top: inherit;
+        left: 8px;
+    }
+    .top-hud {
+        position: relative;
+        top: inherit;
+        left: 8px;
+    }
+    #cy {
+        top: 3.5em;
+    }
+    #info {
+        display: none;
+    }
+    #source-code-small {
+        display: block;
+    }
 }
