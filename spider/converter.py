@@ -129,15 +129,22 @@ if __name__ == "__main__":
     f.write(json.dumps(elements))
     f.write(";\ngenerationDate = '" + datetime.datetime.now().strftime("%m/%d/%Y") + "';")
 
+    # load codes mapper
+    mf = open('spider/department-codes.json', 'r')
+    code_mapper = json.loads(mf.read())
+    mf.close()
+
     # generate a list of all codes
     codes = list(obj.codes)
     codes.sort()
     codesDict = {}
     for c in codes:
-        if c == "COMS":
-            codesDict[c] = "Computer Science"
+        if c in code_mapper:
+            codesDict[c] = code_mapper[c]
+            del code_mapper[c]
         else:
             codesDict[c] = c
     f.write(";\nclassCodes = " + json.dumps(codesDict) + ";")
 
     f.close()
+    print(code_mapper)
