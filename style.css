@@ -29,20 +29,18 @@ h1 {
     left: 16px;
 }
 
-#course-info {
-    /*width: 75%;*/
-}
-
 #bottom {
-    position: absolute;
-    bottom: 0;
-    padding-bottom: 8px;
+    align-self: flex-end;
+    white-space: nowrap;
+    padding-left: 8px;
 }
 
 #info {
+    display: flex;
+    justify-content: space-between;
     position: absolute;
-    right: 8px;
     bottom: 8px;
+    width: 100%;
 }
 
 #source-code-small {
