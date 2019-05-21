@@ -33,6 +33,7 @@ h1 {
     align-self: flex-end;
     white-space: nowrap;
     padding-left: 8px;
+    padding-right: 16px;
 }
 
 #info {
@@ -74,7 +75,7 @@ a {
     #course-descr {
         display: none;
     }
-    #info {
+    #bottom {
         display: none;
     }
     #source-code-small {
