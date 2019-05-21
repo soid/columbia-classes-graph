@@ -45,9 +45,10 @@ document.addEventListener('DOMContentLoaded', function () {
             hideNodeDeps(selectedNode);
         }
         selectedNode = node;
-        document.getElementById('course-descr').innerHTML = data.id + ": " + data.title
+        document.getElementById('course-info').innerHTML = data.id + ": " + data.title
             + " " + data.points
             + "<br/>" + data.prereq;
+        document.getElementById('course-descr').innerHTML = data.descr;
 
         // grey out unrelated classes
         cy.nodes().not(node.target.predecessors().nodes()).not(node.target).animate({

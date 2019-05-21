@@ -29,7 +29,7 @@ h1 {
     left: 16px;
 }
 
-#course-descr {
+#course-info {
     /*width: 75%;*/
 }
 
@@ -72,6 +72,9 @@ a {
     }
     #cy {
         top: 3.5em;
+    }
+    #course-descr {
+        display: none;
     }
     #info {
         display: none;

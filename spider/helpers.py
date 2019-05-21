@@ -13,4 +13,5 @@ def parse_course(course):
         'scheduled': True if course.css('div.desc_sched') else False,
         'points': "".join(course.css('p.courseblocktitle strong em::text').getall()),
         'prereq': "".join(course.css('span.prereq *::text').getall()).replace("\u00a0", " "),
+        'descr': "".join(course.css('p.closed *::text').getall()),
     }
