@@ -7,15 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var cy = window.cy = cytoscape({
         container: document.getElementById('cy'),
-
-        layout: {
-            name: 'breadthfirst',
-            grid: true,
-            animate: true,
-            maximal: true,
-            directed: true,
-        },
-
         style: [
             {
                 selector: 'node',
@@ -36,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         ],
-        elements: elements
     });
 
     var aniOpt = {
@@ -126,6 +116,48 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     cy.on('mouseout', 'node', hideNodeDeps);
 
+    /* show classes by code */
+    var showClassesByCode = function(code) {
+        var shown = new Set();
+        elements.nodes.forEach(n => {
+            if (n.data.code == code) {
+                cy.add(n)
+                shown.add(n.data.num);
+            }
+        });
+        elements.edges.forEach(e => {
+            if (e.data.code == code) {
+               if (id2node[e.data.source]) {
+                 if (!shown.has(e.data.source)) {
+                   cy.add(id2node[e.data.source])
+                   shown.add(e.data.source);
+                 }
+               } else {
+                 return;
+               }
+
+               if (id2node[e.data.target]) {
+                 if (!shown.has(e.data.target)) {
+                    cy.add(id2node[e.data.target])
+                    shown.add(e.data.target);
+                  }
+               } else {
+                 return;
+               }
+               cy.add(e);
+            }
+        });
+
+        var layout = cy.layout({
+            name: 'breadthfirst',
+            grid: true,
+            animate: true,
+            maximal: true,
+            directed: true,
+        });
+        layout.run();
+    }
+
     /* node click */
     var openClassDetails = function(node) {
         var classId = node.target.data().id;
@@ -138,4 +170,5 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     document.getElementById("generationDate").innerText = generationDate;
+    showClassesByCode("COMS");
 });

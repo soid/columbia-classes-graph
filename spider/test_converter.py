@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from spider.converter import Converter
+from converter import Converter
 
 
 class TestConverter(TestCase):
@@ -18,6 +18,8 @@ class TestConverter(TestCase):
                               [])
         TestConverter.compare("Prerequisites: (MATH UN1202) or the equivalent",
                               ["MATH UN1202"])
+        TestConverter.compare("Prerequisites: (COMS W1004) or (COMS W1005) or (COMS W1007) or (ENGI E1006)",
+                              [["COMS W1004", "COMS W1005", "COMS W1007", "ENGI E1006"]])
 
     @staticmethod
     def compare(prereq_str, expected):

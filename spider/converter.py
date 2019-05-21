@@ -15,7 +15,7 @@ class Converter:
         self.tmp_id = 1
 
     def add_course(self, course):
-        course['num'] = course['num'].replace("\u00a0", " ")
+        course['num'] = course['num']
         if course['scheduled']:
             self.elements['nodes'].append({
                 'data': {
@@ -31,12 +31,13 @@ class Converter:
             })
         self.courses[course['num']] = course
 
-    def add_prereq(self, pre, num):
-        pre = pre.replace("\u00a0", " ")
-        num = num.replace("\u00a0", " ")
+    def add_prereq(self, pre, num, code):
+        pre = pre
+        num = num
         c = self.fuzzy_find(pre)
         if not c:
-            self.add_course({'num': pre, 'title': pre, 'points': '', 'prereq': '', 'scheduled': True})
+            return
+            # self.add_course({'num': pre, 'title': pre, 'points': '', 'prereq': '', 'scheduled': True})
         elif c['num'] != pre:
             pre = c['num']
 
@@ -46,7 +47,8 @@ class Converter:
         self.elements['edges'].append({
             'data': {
                 'source': pre,
-                'target': num
+                'target': num,
+                'code': code
             }
         })
 
@@ -66,9 +68,9 @@ class Converter:
                 for pre in prereq:
                     if type(pre) == list:
                         for p in pre:
-                            self.add_prereq(p, num)
+                            self.add_prereq(p, num, course['code'])
                     else:
-                        self.add_prereq(pre, num)
+                        self.add_prereq(pre, num, course['code'])
                 
         return self.elements
 
@@ -111,8 +113,7 @@ class Converter:
 
 
 if __name__ == "__main__":
-    # f = open('data/all-classes.json', 'r')
-    f = open('data/result.json', 'r')
+    f = open('data/all-classes.json', 'r')
     data = json.loads(f.read())
     f.close()
 

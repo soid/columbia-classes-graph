@@ -1,6 +1,7 @@
 import html
 import scrapy
 from scrapy.selector import Selector
+from helpers import parse_course
 
 
 class ClassesSpider(scrapy.Spider):
@@ -13,13 +14,4 @@ class ClassesSpider(scrapy.Spider):
         for course_html in response.css('results result description'):
             course = Selector(text=html.unescape(course_html.get()))
 
-            blocktitle = course.css('p.courseblocktitle strong::text')
-            yield {
-                'entry': blocktitle.getall(),
-                'num': blocktitle.re(r'[A-Z]{4}\s[A-Z]{1,2}\d+')[0],
-                'title': blocktitle.re(r'[A-Z]{4}\s[A-Z]{1,2}\d+\s+(.+)$'),
-                'scheduled': True if course.css('div.desc_sched') else False,
-                'points': course.css('p.courseblocktitle strong em::text').get(),
-                'prereq': course.css('span.prereq *::text').getall(),
-            }
-
+            yield parse_course(course)

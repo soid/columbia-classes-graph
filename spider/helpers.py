@@ -8,9 +8,9 @@ def parse_course(course):
     return {
         'entry': block_title.getall(),
         'code': cls[1],
-        'num': cls[0],
+        'num': cls[0].replace("\u00a0", " "),
         'title': cls[2],
         'scheduled': True if course.css('div.desc_sched') else False,
         'points': "".join(course.css('p.courseblocktitle strong em::text').getall()),
-        'prereq': "".join(course.css('span.prereq *::text').getall()),
+        'prereq': "".join(course.css('span.prereq *::text').getall()).replace("\u00a0", " "),
     }
