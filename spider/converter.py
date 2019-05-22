@@ -48,6 +48,9 @@ class Converter:
         if not self.courses[pre]['scheduled']:
             return
 
+        if pre == num:
+            return
+
         self.elements['edges'].append({
             'data': {
                 'source': pre,
@@ -56,29 +59,7 @@ class Converter:
             }
         })
 
-    def parse(self, data):
-        # create nodes
-        for course in data:
-            title = course['title']
-            num = course['num']
-            print(num + " : " + title)
-            self.add_course(course)
-            
-        # create edges
-        for course in data:
-            num = course['num']
-            prereq = self.retrieve_prereqs(course['prereq'])
-            if course['scheduled']:
-                for pre in prereq:
-                    if type(pre) == list:
-                        for p in pre:
-                            self.add_prereq(p, num, course['code'])
-                    else:
-                        self.add_prereq(pre, num, course['code'])
-                
-        return self.elements
-
-    # some courses don't match exact characters. Try to find them
+    # some courses don't match exact characters. Try to find non-exact matches
     def fuzzy_find(self, num):
         if num in self.courses:
             return self.courses[num]
@@ -89,6 +70,7 @@ class Converter:
 
     PREREQ_PATTERN = re.compile(r'([A-Z]{4} [A-Z][A-Z]?[0-9]{4}|[A-Z][A-Z]?[0-9]{4}|[oO][rR]|[aA][nN][dD])')
 
+    # Retrieves a list of prerequisites from a free text form
     @staticmethod
     def retrieve_prereqs(prereq_str):
         matches = Converter.PREREQ_PATTERN.findall(prereq_str)
@@ -115,6 +97,28 @@ class Converter:
 
         return prereq
 
+    def parse(self, data):
+        # create nodes
+        for course in data:
+            title = course['title']
+            num = course['num']
+            print(num + " : " + title)
+            self.add_course(course)
+
+        # create edges
+        for course in data:
+            num = course['num']
+            prereq = self.retrieve_prereqs(course['prereq'])
+            if course['scheduled']:
+                for pre in prereq:
+                    if type(pre) == list:
+                        for p in pre:
+                            self.add_prereq(p, num, course['code'])
+                    else:
+                        self.add_prereq(pre, num, course['code'])
+
+        return self.elements
+
 
 if __name__ == "__main__":
     f = open('data/all-classes.json', 'r')
@@ -124,6 +128,7 @@ if __name__ == "__main__":
     obj = Converter()
     elements = obj.parse(data)
 
+    # write output
     f = open('data/classes-data.js', 'w')
     f.write("elements = ")
     f.write(json.dumps(elements))
@@ -145,6 +150,7 @@ if __name__ == "__main__":
         else:
             codesDict[c] = c
     f.write(";\nclassCodes = " + json.dumps(codesDict) + ";")
-
     f.close()
+
+    # some debug output
     print(code_mapper)
