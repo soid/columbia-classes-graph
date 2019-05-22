@@ -1,13 +1,13 @@
-# Columbia University CS Course Map
+# Columbia University Course Map
 
 I just wanted to see the class requirements on a graph. 
 
-## Use
-
-Run run.sh. You may need to run setup.sh first.
-
-Open index.html
-
-## Or
+## Online
 
 http://columbia.dicefield.com/
+
+## Generating Locally
+
+Run `run.sh`. You may need to run `setup.sh` first.
+
+Open index.html
