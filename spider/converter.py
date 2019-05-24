@@ -12,6 +12,7 @@ class Converter:
         self.elements['edges'] = []
 
         self.courses = {}
+        self.culpa_links = {}
         self.codes = set()
         self.tmp_id = 1
 
@@ -57,15 +58,27 @@ class Converter:
         })
 
     def parse(self, data):
+        # create instructors index
+        link_re = re.compile(r'\/(\d+)$')
+        courses = []
+        for entry in data:
+            if entry['type'] == 'class':
+                courses.append(entry)
+            if entry['type'] == 'culpa_link':
+                self.culpa_links[entry['instructor']] = {
+                    'count': entry['count'],
+                    'id': link_re.search(entry["link"]).group(1)
+                }
+
         # create nodes
-        for course in data:
+        for course in courses:
             title = course['title']
             num = course['num']
             print(num + " : " + title)
             self.add_course(course)
             
         # create edges
-        for course in data:
+        for course in courses:
             num = course['num']
             prereq = self.retrieve_prereqs(course['prereq'])
             if course['scheduled']:
@@ -145,6 +158,8 @@ if __name__ == "__main__":
         else:
             codesDict[c] = c
     f.write(";\nclassCodes = " + json.dumps(codesDict) + ";")
+
+    f.write(";\ninstructors = " + json.dumps(obj.culpa_links) + ";")
 
     f.close()
     print(code_mapper)
