@@ -49,11 +49,15 @@ document.addEventListener('DOMContentLoaded', function () {
             + " " + data.points
             + "<br/>" + data.prereq;
         document.getElementById('course-descr').innerHTML = data.descr;
-        document.getElementById('instructors').innerHTML = "Taught by " +
-            data.instructors.map(instr => instructors[instr] != undefined ?
-                (instr + " (<a href='http://culpa.info/professors/" + instructors[instr]['id']
-                + "'>CULPA:" + instructors[instr]['count'] + "</a>)") : instr)
-                .join(", ");
+        if (data.instructors.length > 0) {
+            document.getElementById('instructors').innerHTML = "Taught by " +
+                data.instructors.map(instr => instructors[instr] != undefined ?
+                    (instr + " (<a href='http://culpa.info/professors/" + instructors[instr]['id']
+                        + "'>CULPA:" + instructors[instr]['count'] + "</a>)") : instr)
+                    .join(", ");
+        } else {
+            document.getElementById('instructors').innerHTML = "";
+        }
 
         // grey out unrelated classes
         cy.nodes().not(node.target.predecessors().nodes()).not(node.target).animate({
