@@ -27,25 +27,33 @@ class ClassesSpider(scrapy.Spider):
                 for instr in course_data['instructors']:
                     url = 'http://culpa.info/search?utf8=✓&search=' \
                           + urllib.parse.quote_plus(instr) + '&commit=Search'
-                    yield Request(url, callback=self.parse_culpa_search,
+                    yield Request(url, callback=self.parse_culpa_search_prof,
                                   meta={'course_data': course_data,
                                         'instructor': instr})
+
+                    url = 'http://culpa.info/search?utf8=✓&search=' \
+                          + urllib.parse.quote_plus(course_data['num']) + '&commit=Search'
+                    yield Request(url, callback=self.parse_culpa_search_class,
+                                  meta={'course_data': course_data})
+
             yield {**course_data, 'type': 'class'}
 
-    def parse_culpa_search(self, response):
+    # Parsing CULPA profs
+
+    def parse_culpa_search_prof(self, response):
         found = response.css('.search_results .box tr td')
         if found:
             link = found.css('a::attr(href)').get()
             url = 'http://culpa.info' + link
             nugget = found.css('img.nugget::attr(alt)').get()
-            yield Request(url, callback=self.parse_culpa_profile,
+            yield Request(url, callback=self.parse_culpa_prof,
                           meta={**response.meta,
                                 'link': link,
                                 'nugget': nugget})
 
-    def parse_culpa_profile(self, response):
+    def parse_culpa_prof(self, response):
         result = {
-            'type': 'culpa_link',
+            'type': 'culpa_prof_link',
             'class': response.meta.get('course_data')['num'],
             'instructor': response.meta.get('instructor'),
             'count': len(response.css('div.professor .review')),
@@ -57,3 +65,22 @@ class ClassesSpider(scrapy.Spider):
             if response.meta.get('nugget').upper().startswith("SILVER"):
                 result['nugget'] = "silver"
         yield result
+
+    # Parsing CULPA classes
+
+    def parse_culpa_search_class(self, response):
+        found = response.css('.search_results .box tr td')
+        if found:
+            link = found.css('a::attr(href)').get()
+            url = 'http://culpa.info' + link
+            yield Request(url, callback=self.parse_culpa_class,
+                          meta={**response.meta,
+                                'link': link})
+
+    def parse_culpa_class(self, response):
+        yield {
+            'type': 'culpa_course_link',
+            'class': response.meta.get('course_data')['num'],
+            'link': response.meta.get('link'),
+            'count': len(response.css('div.course .review'))
+        }

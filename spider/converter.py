@@ -31,6 +31,7 @@ class Converter:
                 }
             }
             del data['entry']
+            del data['type']
             self.elements['nodes'].append({
                 'data': data
             })
@@ -64,19 +65,27 @@ class Converter:
         # create instructors index
         link_re = re.compile(r'\/(\d+)$')
         courses = []
+        culpa_courses = {}
         for entry in data:
             if entry['type'] == 'class':
                 courses.append(entry)
-            if entry['type'] == 'culpa_link':
+            if entry['type'] == 'culpa_prof_link':
                 self.culpa_links[entry['instructor']] = {
                     'count': entry['count'],
                     'id': link_re.search(entry["link"]).group(1)
                 }
                 if 'nugget' in entry:
                     self.culpa_links[entry['instructor']]['nugget'] = entry['nugget']
+            if entry['type'] == 'culpa_course_link':
+                culpa_courses[entry['class']] = {
+                    'count': entry['count'],
+                    'id': link_re.search(entry["link"]).group(1)
+                }
 
         # create nodes
         for course in courses:
+            if course['num'] in culpa_courses:
+                course['culpa'] = culpa_courses[course['num']]
             title = course['title']
             num = course['num']
             print(num + " : " + title)

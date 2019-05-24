@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedNode = node;
         document.getElementById('course-info').innerHTML = data.id + ": " + data.title
             + " " + data.points
+            + (data.culpa ? (" (<a href='http://culpa.info/courses/" + data.culpa.id + "'>CULPA:" + data.culpa.count + "</a>)") : "")
             + "<br/>" + data.prereq;
         document.getElementById('course-descr').innerHTML = data.descr;
         if (data.instructors.length > 0) {
