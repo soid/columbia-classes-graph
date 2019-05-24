@@ -72,6 +72,8 @@ class Converter:
                     'count': entry['count'],
                     'id': link_re.search(entry["link"]).group(1)
                 }
+                if 'nugget' in entry:
+                    self.culpa_links[entry['instructor']]['nugget'] = entry['nugget']
 
         # create nodes
         for course in courses:

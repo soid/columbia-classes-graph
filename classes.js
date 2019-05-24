@@ -53,7 +53,9 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('instructors').innerHTML = "Taught by " +
                 data.instructors.map(instr => instructors[instr] != undefined ?
                     (instr + " (<a href='http://culpa.info/professors/" + instructors[instr]['id']
-                        + "'>CULPA:" + instructors[instr]['count'] + "</a>)") : instr)
+                        + "'>CULPA:" + instructors[instr]['count']
+                        + (instructors[instr].nugget ? "<img src='images/gold_nugget.gif' height='12' width='11'/>" : "")
+                        + "</a>)") : instr)
                     .join(", ");
         } else {
             document.getElementById('instructors').innerHTML = "";

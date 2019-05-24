@@ -37,14 +37,23 @@ class ClassesSpider(scrapy.Spider):
         if found:
             link = found.css('a::attr(href)').get()
             url = 'http://culpa.info' + link
+            nugget = found.css('img.nugget::attr(alt)').get()
             yield Request(url, callback=self.parse_culpa_profile,
-                          meta={**response.meta, 'link': link})
+                          meta={**response.meta,
+                                'link': link,
+                                'nugget': nugget})
 
     def parse_culpa_profile(self, response):
-        yield {
+        result = {
             'type': 'culpa_link',
             'class': response.meta.get('course_data')['num'],
             'instructor': response.meta.get('instructor'),
             'count': len(response.css('div.professor .review')),
             'link': response.meta.get('link')
         }
+        if response.meta.get('nugget'):
+            if response.meta.get('nugget').upper().startswith("GOLD"):
+                result['nugget'] = "gold"
+            if response.meta.get('nugget').upper().startswith("SILVER"):
+                result['nugget'] = "silver"
+        yield result
