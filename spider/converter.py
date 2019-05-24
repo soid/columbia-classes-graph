@@ -49,6 +49,9 @@ class Converter:
         if not self.courses[pre]['scheduled']:
             return
 
+        if pre == num:
+            return
+
         self.elements['edges'].append({
             'data': {
                 'source': pre,
@@ -91,7 +94,7 @@ class Converter:
                 
         return self.elements
 
-    # some courses don't match exact characters. Try to find them
+    # some courses don't match exact characters. Try to find non-exact matches
     def fuzzy_find(self, num):
         if num in self.courses:
             return self.courses[num]
@@ -102,6 +105,7 @@ class Converter:
 
     PREREQ_PATTERN = re.compile(r'([A-Z]{4} [A-Z][A-Z]?[0-9]{4}|[A-Z][A-Z]?[0-9]{4}|[oO][rR]|[aA][nN][dD])')
 
+    # Retrieves a list of prerequisites from a free text form
     @staticmethod
     def retrieve_prereqs(prereq_str):
         matches = Converter.PREREQ_PATTERN.findall(prereq_str)
@@ -137,6 +141,7 @@ if __name__ == "__main__":
     obj = Converter()
     elements = obj.parse(data)
 
+    # write output
     f = open('data/classes-data.js', 'w')
     f.write("elements = ")
     f.write(json.dumps(elements))
@@ -162,4 +167,6 @@ if __name__ == "__main__":
     f.write(";\ninstructors = " + json.dumps(obj.culpa_links) + ";")
 
     f.close()
+
+    # some debug output
     print(code_mapper)
