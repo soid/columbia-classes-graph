@@ -75,6 +75,9 @@ a {
     #course-descr {
         display: none;
     }
+    #instructors {
+        display: none;
+    }
     #bottom {
         display: none;
     }
