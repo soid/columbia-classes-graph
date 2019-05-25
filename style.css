@@ -70,6 +70,9 @@ a {
         top: inherit;
         left: 8px;
     }
+    .search {
+        display: none;
+    }
     #cy {
         top: 6.5em;
     }

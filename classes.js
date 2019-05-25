@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
 
-    // show the graph
+    // handle events
     document.getElementById("generationDate").innerText = generationDate;
 
     var sel = document.getElementById("codesList");
@@ -195,6 +195,41 @@ document.addEventListener('DOMContentLoaded', function () {
         showClassesByCode(code);
     };
 
+    var search = document.getElementById("search");
+    search.onkeypress = function (e) {
+      var term = e.target.value.trim().toUpperCase();
+      if (term == "") {
+          cy.nodes().animate({
+                  style: {
+                      backgroundColor: '#ABC4AB',
+                      borderWidth: 1
+                  }
+              },
+              aniOpt);
+          return;
+      }
+      var found = cy.nodes().filter(n => n.data().num.includes(term));
+      var notFound = cy.nodes().not(found);
+      found.animate({
+            style: {
+              backgroundColor: '#ABD897',
+              borderWidth: 1
+            }
+          },
+          aniOpt);
+      notFound.animate({
+            style: {
+                backgroundColor: '#ABB0AB',
+            }
+          },
+          aniOpt);
+
+    };
+    search.onchange = search.onkeypress;
+    search.onpaste = search.onkeypress;
+    search.oninput = search.onkeypress;
+
+    // show the graph
     Object.keys(classCodes).forEach(function (k) {
         var opt = document.createElement('option');
         opt.appendChild(document.createTextNode(((classCodes[k] == k) ? "" : (k + ": ")) + classCodes[k]));
