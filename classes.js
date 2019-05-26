@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var data = node.target.data();
         if (selectedNode != null) {
             // open class details if clicked selected node (for mobile)
-            if (selectedNode.target.data().id == node.target.data().id) {
+            if (selectedNode.target.data().id === node.target.data().id) {
                 openClassDetails(node);
                 return;
             }
@@ -50,7 +50,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // show course info
         document.getElementById('course-info').innerHTML = data.id + ": " + data.title
             + " " + data.points
-            + (data.culpa ? (" (<a href='http://culpa.info/courses/" + data.culpa.id + "'>CULPA:" + data.culpa.count + "</a>)") : "")
+            + (data.culpa
+                ? (" (<a target='_blank' href='http://culpa.info/courses/" + data.culpa.id + "'>" +
+                    "CULPA:" + data.culpa.count + "</a>)")
+                : "")
             + "<br/>" + data.prereq;
 
         // show instructors info
@@ -60,19 +63,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 data.instructors.map(instr => {
                     var instructorInfo = instr;
                     var instructorLinks = [];
-                    if (instructors[instr] != undefined && instructors[instr]['culpa_id'] != undefined) {
+                    if (instructors[instr] !== undefined && instructors[instr]['culpa_id'] !== undefined) {
                         instructorLinks.push(
                             "<a target='_blank' href='http://culpa.info/professors/" + instructors[instr]['culpa_id']
                             + "'>CULPA:" + instructors[instr]['count']
                             + (instructors[instr].nugget
-                                ? "<img src='images/gold_nugget.gif' height='12' width='11'/>" : "")
+                                ? "<img alt='Wikipedia' src='images/gold_nugget.gif' height='12' width='11'/>" : "")
                             + "</a>");
                     }
-                    if (instructors[instr] != undefined && instructors[instr]['wiki'] != undefined) {
+                    if (instructors[instr] !== undefined && instructors[instr]['wiki'] !== undefined) {
                         instructorLinks.push(
                             "<a target='_blank' href='https://en.wikipedia.org/wiki/"
                             + instructors[instr]['wiki']
-                            + "'><img class='imglink' src='images/wikipedia.ico' height='18' width='18'/></a>");
+                            + "'><img alt='Wikipedia' class='imglink' src='images/wikipedia.ico' height='18' width='18'/></a>");
                     }
                     if (instructorLinks.length > 0) {
                         instructorInfo += " (" + instructorLinks.join(" ") + ")";
@@ -155,16 +158,16 @@ document.addEventListener('DOMContentLoaded', function () {
         cy.elements().remove();
         var shown = new Set();
         elements.nodes.forEach(n => {
-            if (n.data.code == code) {
-                cy.add(n)
+            if (n.data.code === code) {
+                cy.add(n);
                 shown.add(n.data.num);
             }
         });
         elements.edges.forEach(e => {
-            if (e.data.code == code) {
+            if (e.data.code === code) {
                if (id2node[e.data.source]) {
                  if (!shown.has(e.data.source)) {
-                   cy.add(id2node[e.data.source])
+                   cy.add(id2node[e.data.source]);
                    shown.add(e.data.source);
                  }
                } else {
@@ -173,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                if (id2node[e.data.target]) {
                  if (!shown.has(e.data.target)) {
-                    cy.add(id2node[e.data.target])
+                    cy.add(id2node[e.data.target]);
                     shown.add(e.data.target);
                   }
                } else {
@@ -192,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function () {
             directed: true,
         });
         layout.run();
-    }
+    };
 
     /* node click */
     var openClassDetails = function(node) {
@@ -219,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var search = document.getElementById("search");
     search.onkeypress = function (e) {
       var term = e.target.value.trim().toUpperCase();
-      if (term == "") {
+      if (term === "") {
           cy.nodes().animate({
                   style: {
                       backgroundColor: '#ABC4AB',
@@ -253,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // show the graph
     Object.keys(classCodes).forEach(function (k) {
         var opt = document.createElement('option');
-        opt.appendChild(document.createTextNode(((classCodes[k] == k) ? "" : (k + ": ")) + classCodes[k]));
+        opt.appendChild(document.createTextNode(((classCodes[k] === k) ? "" : (k + ": ")) + classCodes[k]));
         opt.value = k;
         sel.appendChild(opt);
     });
