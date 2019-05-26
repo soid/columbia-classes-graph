@@ -169,7 +169,7 @@ if __name__ == "__main__":
     f = open('data/classes-data.js', 'w')
     f.write("elements = ")
     f.write(json.dumps(elements))
-    f.write(";\ngenerationDate = '" + datetime.datetime.now().strftime("%m/%d/%Y") + "';")
+    f.write(";\ngenerationDate = '" + datetime.datetime.now().strftime("%m/%d/%Y") + "';\n")
 
     # load codes mapper
     mf = open('spider/department-codes.json', 'r')
@@ -186,9 +186,9 @@ if __name__ == "__main__":
             del code_mapper[c]
         else:
             codesDict[c] = c
-    f.write(";\nclassCodes = " + json.dumps(codesDict) + ";")
+    f.write("classCodes = " + json.dumps(codesDict) + ";\n")
 
-    f.write(";\ninstructors = " + json.dumps(obj.culpa_links) + ";")
+    f.write("instructors = " + json.dumps(obj.culpa_links) + ";\n")
 
     f.close()
 
