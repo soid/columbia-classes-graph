@@ -1,11 +1,19 @@
 import datetime
 import re
 import json
+from os.path import dirname, realpath
+
+from allclasses import ClassesSpider
 
 
 class Converter:
     courseNumPattern = re.compile(r'^\w')
-    
+
+    @staticmethod
+    def get_data():
+        with open(dirname(dirname(realpath(__file__))) + '/data/all-classes.json', 'r') as file:
+            return json.loads(file.read())
+
     def __init__(self):
         self.elements = {}
         self.elements['nodes'] = []
@@ -70,12 +78,13 @@ class Converter:
             if entry['type'] == 'class':
                 courses.append(entry)
             if entry['type'] == 'culpa_prof_link':
-                self.culpa_links[entry['instructor']] = {
-                    'count': entry['count'],
-                    'id': link_re.search(entry["link"]).group(1)
-                }
+                self.add_prof_info(entry['instructor'],
+                                   count=entry['count'], culpa_id=link_re.search(entry["link"]).group(1))
                 if 'nugget' in entry:
                     self.culpa_links[entry['instructor']]['nugget'] = entry['nugget']
+            if entry['type'] == ClassesSpider.TYPE_WIKI_LINK_PROFESSOR:
+                self.add_prof_info(entry['instructor'],
+                                   wiki=entry["wiki_title"].replace(" ", "_"))
             if entry['type'] == 'culpa_course_link':
                 culpa_courses[entry['class']] = {
                     'count': entry['count'],
@@ -104,6 +113,12 @@ class Converter:
                         self.add_prereq(pre, num, course['code'])
                 
         return self.elements
+
+    def add_prof_info(self, instr, **kwargs):
+        if instr not in self.culpa_links:
+            self.culpa_links[instr] = {}
+        for k, v in kwargs.items():
+            self.culpa_links[instr][k] = v
 
     # some courses don't match exact characters. Try to find non-exact matches
     def fuzzy_find(self, num):
@@ -145,9 +160,7 @@ class Converter:
 
 
 if __name__ == "__main__":
-    f = open('data/all-classes.json', 'r')
-    data = json.loads(f.read())
-    f.close()
+    data = Converter.get_data()
 
     obj = Converter()
     elements = obj.parse(data)

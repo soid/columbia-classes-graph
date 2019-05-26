@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var showNodeDeps = function(node) {
         var data = node.target.data();
         if (selectedNode != null) {
+            // open class details if clicked selected node (for mobile)
             if (selectedNode.target.data().id == node.target.data().id) {
                 openClassDetails(node);
                 return;
@@ -45,19 +46,39 @@ document.addEventListener('DOMContentLoaded', function () {
             hideNodeDeps(selectedNode);
         }
         selectedNode = node;
+
+        // show course info
         document.getElementById('course-info').innerHTML = data.id + ": " + data.title
             + " " + data.points
             + (data.culpa ? (" (<a href='http://culpa.info/courses/" + data.culpa.id + "'>CULPA:" + data.culpa.count + "</a>)") : "")
             + "<br/>" + data.prereq;
+
+        // show instructors info
         document.getElementById('course-descr').innerHTML = data.descr;
         if (data.instructors.length > 0) {
             document.getElementById('instructors').innerHTML = "Taught by " +
-                data.instructors.map(instr => instructors[instr] != undefined ?
-                    (instr + " (<a href='http://culpa.info/professors/" + instructors[instr]['id']
-                        + "'>CULPA:" + instructors[instr]['count']
-                        + (instructors[instr].nugget ? "<img src='images/gold_nugget.gif' height='12' width='11'/>" : "")
-                        + "</a>)") : instr)
-                    .join(", ");
+                data.instructors.map(instr => {
+                    var instructorInfo = instr;
+                    var instructorLinks = [];
+                    if (instructors[instr] != undefined && instructors[instr]['wiki'] != undefined) {
+                        instructorLinks.push(
+                            "<a target='_blank' href='http://culpa.info/professors/" + instructors[instr]['culpa_id']
+                            + "'>CULPA:" + instructors[instr]['count']
+                            + (instructors[instr].nugget
+                                ? "<img src='images/gold_nugget.gif' height='12' width='11'/>" : "")
+                            + "</a>");
+                    }
+                    if (instructors[instr] != undefined && instructors[instr]['wiki'] != undefined) {
+                        instructorLinks.push(
+                            "<a target='_blank' href='https://en.wikipedia.org/wiki/"
+                            + instructors[instr]['wiki']
+                            + "'><img class='imglink' src='images/wikipedia.ico' height='18' width='18'/></a>");
+                    }
+                    if (instructorLinks.length > 0) {
+                        instructorInfo += " (" + instructorLinks.join(" ") + ")";
+                    }
+                    return instructorInfo;
+                }).join(", ");
         } else {
             document.getElementById('instructors').innerHTML = "";
         }

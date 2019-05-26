@@ -1,12 +1,16 @@
+import json
 import html
 import scrapy
 from scrapy import Request
 from scrapy.selector import Selector
 import urllib.parse
+from w3lib.html import remove_tags
 from helpers import parse_course
 
 
 class ClassesSpider(scrapy.Spider):
+    TYPE_WIKI_LINK_PROFESSOR = "wiki_prof_link"
+
     name = 'all-classes'
     start_urls = [
         # taken from http://bulletin.columbia.edu/general-studies/undergraduates/courses/?term=3&pl=0&ph=10&college=GS
@@ -25,16 +29,29 @@ class ClassesSpider(scrapy.Spider):
             # crawl CULPA for instructors
             if len(course_data['instructors']) > 0:
                 for instr in course_data['instructors']:
+                    instr = instr.strip()
+                    if not instr:
+                        continue
+
+                    # search professor on CULPA
                     url = 'http://culpa.info/search?utf8=✓&search=' \
                           + urllib.parse.quote_plus(instr) + '&commit=Search'
                     yield Request(url, callback=self.parse_culpa_search_prof,
                                   meta={'course_data': course_data,
                                         'instructor': instr})
 
+                    # search class on CULPA
                     url = 'http://culpa.info/search?utf8=✓&search=' \
                           + urllib.parse.quote_plus(course_data['num']) + '&commit=Search'
                     yield Request(url, callback=self.parse_culpa_search_class,
                                   meta={'course_data': course_data})
+
+                    # search professor on wikipedia
+                    url = 'https://en.wikipedia.org/w/api.php?action=query&list=search&utf8=&format=json&srsearch=' \
+                          + urllib.parse.quote_plus("Columbia University intitle:" + instr)
+                    yield Request(url, callback=self.parse_wiki_prof,
+                                  meta={'course_data': course_data,
+                                        'instructor': instr})
 
             yield {**course_data, 'type': 'class'}
 
@@ -84,3 +101,68 @@ class ClassesSpider(scrapy.Spider):
             'link': response.meta.get('link'),
             'count': len(response.css('div.course .review'))
         }
+
+    # Wikipedia
+
+    def parse_wiki_prof(self, response):
+        instr = response.meta.get('instructor')
+        json_response = json.loads(response.body_as_unicode())
+        search = json_response['query']['search']
+        print('WIKI: Search results for', instr, ':', search)
+
+        possible_match = []
+        for result in search:
+            title = result['title']
+            if not ClassesSpider.validate_name(instr, title):
+                continue
+
+            if len(search) == 1:
+                yield ClassesSpider.wiki_prof_link(instr, title)
+                return
+
+            snippet = remove_tags(result['snippet']).upper()
+            if "COLUMBIA UNIVERSITY" not in snippet:
+                possible_match.append(result)
+                continue
+
+            # found match
+            yield ClassesSpider.wiki_prof_link(instr, title)
+            return
+
+        # follow some possible articles and try to understand if it's linked to profs
+        for result in possible_match:
+            url = "https://en.wikipedia.org/wiki/" + urllib.parse.quote_plus(result['title'].replace(' ', '_'))
+            yield Request(url, callback=self.parse_wiki_article_prof,
+                          meta={**response.meta,
+                                'instructor': instr,
+                                'wiki_title': result['title']})
+
+        print('WIKI: Not found obvious wiki search results for', instr,
+              '. Following articles:', [x['title'] for x in possible_match])
+        return
+
+    @staticmethod
+    def validate_name(instr, title):
+        for name_part in instr.split(" "):
+            if name_part not in title:
+                return False
+        return True
+
+    @staticmethod
+    def wiki_prof_link(instr, title):
+        return {
+            'type': ClassesSpider.TYPE_WIKI_LINK_PROFESSOR,
+            'instructor': instr,
+            'wiki_title': title
+        }
+
+    # Extended search of some articles: load the entire article
+    def parse_wiki_article_prof(self, response):
+        instr = response.meta.get('instructor')
+        page = remove_tags(response.body_as_unicode()).upper()
+        if "COLUMBIA UNIVERSITY" in page:
+            return ClassesSpider.wiki_prof_link(instr, response.meta.get('wiki_title'))
+        else:
+            print("WIKI: Rejecting article '" + response.meta.get('wiki_title') + "'. "
+                                                                                  "Not linked to professor: " + instr)
+
