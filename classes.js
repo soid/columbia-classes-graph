@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 data.instructors.map(instr => {
                     var instructorInfo = instr;
                     var instructorLinks = [];
-                    if (instructors[instr] != undefined && instructors[instr]['wiki'] != undefined) {
+                    if (instructors[instr] != undefined && instructors[instr]['culpa_id'] != undefined) {
                         instructorLinks.push(
                             "<a target='_blank' href='http://culpa.info/professors/" + instructors[instr]['culpa_id']
                             + "'>CULPA:" + instructors[instr]['count']
