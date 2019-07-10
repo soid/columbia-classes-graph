@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var search = document.getElementById("search");
     search.onkeypress = function (e) {
-      var term = e.target.value.trim().toUpperCase();
+      let term = e.target.value.trim().toUpperCase();
       if (term === "") {
           cy.nodes().animate({
                   style: {
@@ -233,12 +233,26 @@ document.addEventListener('DOMContentLoaded', function () {
               aniOpt);
           return;
       }
-      var searchFunc = function(node) {
-          return node.data().num.includes(term)
-              || node.data().title.toUpperCase().includes(term)
-              || node.data().instructors.filter(instr => instr.toUpperCase().includes(term)).length > 0;
+      let searchFunc = function(data) {
+          return data.num.includes(term)
+              || data.title.toUpperCase().includes(term)
+              || data.instructors.filter(instr => instr.toUpperCase().includes(term)).length > 0;
       }
-      var found = cy.nodes().filter(searchFunc);
+      let found = cy.nodes().filter(node => searchFunc(node.data()));
+      if (found.length == 0 && e.key == "Enter") {
+        // nothing found, try other departments
+        elements.nodes.every(function(node, index) {
+            if (searchFunc(node.data)) {
+                console.log("found!" + node.data.code);
+                sel.value = node.data.code;
+                sel.dispatchEvent(new Event('change'));
+                return false;
+            }
+            return true;
+        });
+        search.dispatchEvent(new Event('change'));
+        return;
+      }
       var notFound = cy.nodes().not(found);
       found.animate({
             style: {
