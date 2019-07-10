@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    // index by id
     var id2node = {};
     for (var i=0; i<elements.nodes.length; i++) {
         id2node[elements.nodes[i].data.id] = elements.nodes[i];
@@ -232,7 +233,12 @@ document.addEventListener('DOMContentLoaded', function () {
               aniOpt);
           return;
       }
-      var found = cy.nodes().filter(n => n.data().num.includes(term));
+      var searchFunc = function(node) {
+          return node.data().num.includes(term)
+              || node.data().title.toUpperCase().includes(term)
+              || node.data().instructors.filter(instr => instr.toUpperCase().includes(term)).length > 0;
+      }
+      var found = cy.nodes().filter(searchFunc);
       var notFound = cy.nodes().not(found);
       found.animate({
             style: {
@@ -253,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
     search.onpaste = search.onkeypress;
     search.oninput = search.onkeypress;
 
-    // show the graph
+    // show the dropdown list
     Object.keys(classCodes).forEach(function (k) {
         var opt = document.createElement('option');
         opt.appendChild(document.createTextNode(((classCodes[k] === k) ? "" : (k + ": ")) + classCodes[k]));
