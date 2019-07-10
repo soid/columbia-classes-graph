@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     // index by id
-    var id2node = {};
-    for (var i=0; i<elements.nodes.length; i++) {
+    let id2node = {};
+    for (let i=0; i<elements.nodes.length; i++) {
         id2node[elements.nodes[i].data.id] = elements.nodes[i];
     }
 
-    var cy = window.cy = cytoscape({
+    let cy = window.cy = cytoscape({
         container: document.getElementById('cy'),
         style: [
             {
@@ -30,14 +30,14 @@ document.addEventListener('DOMContentLoaded', function () {
         ],
     });
 
-    var aniOpt = {
+    let aniOpt = {
         duration: 200
     };
 
     /* Mouse over */
-    var selectedNode = null;
-    var showNodeDeps = function(node) {
-        var data = node.target.data();
+    let selectedNode = null;
+    let showNodeDeps = function(node) {
+        let data = node.target.data();
         if (selectedNode != null) {
             // open class details if clicked selected node (for mobile)
             if (selectedNode.target.data().id === node.target.data().id) {
@@ -62,8 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (data.instructors.length > 0) {
             document.getElementById('instructors').innerHTML = "Taught by " +
                 data.instructors.map(instr => {
-                    var instructorInfo = instr;
-                    var instructorLinks = [];
+                    let instructorInfo = instr;
+                    let instructorLinks = [];
                     if (instructors[instr] !== undefined && instructors[instr]['culpa_id'] !== undefined) {
                         instructorLinks.push(
                             "<a target='_blank' href='http://culpa.info/professors/" + instructors[instr]['culpa_id']
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
     cy.on('tap', 'node', showNodeDeps);
 
     /* Mouse out */
-    var hideNodeDeps = function(node) {
+    let hideNodeDeps = function(node) {
         selectedNode = null;
         // cancel grey out unrelated classes
         cy.nodes().not(node.target.predecessors().nodes()).animate({
@@ -155,9 +155,9 @@ document.addEventListener('DOMContentLoaded', function () {
     cy.on('mouseout', 'node', hideNodeDeps);
 
     /* show classes by code */
-    var showClassesByCode = function(code) {
+    let showClassesByCode = function(code) {
         cy.elements().remove();
-        var shown = new Set();
+        let shown = new Set();
         elements.nodes.forEach(n => {
             if (n.data.code === code) {
                 cy.add(n);
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        var layout = cy.layout({
+        let layout = cy.layout({
             name: 'breadthfirst',
             spacingFactor: 2.3,
             grid: true,
@@ -199,9 +199,9 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     /* node click */
-    var openClassDetails = function(node) {
-        var classId = node.target.data().id;
-        var url = "http://bulletin.columbia.edu/search/?P=" + classId.replace(String.fromCharCode(160), "+");
+    let openClassDetails = function(node) {
+        let classId = node.target.data().id;
+        let url = "http://bulletin.columbia.edu/search/?P=" + classId.replace(String.fromCharCode(160), "+");
         try { // your browser may block popups
             window.open(url);
         } catch(e){ // fall back on url change
@@ -213,14 +213,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // handle events
     document.getElementById("generationDate").innerText = generationDate;
 
-    var sel = document.getElementById("codesList");
+    let sel = document.getElementById("codesList");
     sel.onchange = function (e) {
-        var code = e.target.value;
+        let code = e.target.value;
         window.history.pushState("object or string", "Title", "index.html?code=" + code);
         showClassesByCode(code);
     };
 
-    var search = document.getElementById("search");
+    let search = document.getElementById("search");
     search.onkeypress = function (e) {
       let term = e.target.value.trim().toUpperCase();
       if (term === "") {
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
         search.dispatchEvent(new Event('change'));
         return;
       }
-      var notFound = cy.nodes().not(found);
+        let notFound = cy.nodes().not(found);
       found.animate({
             style: {
               backgroundColor: '#ABD897',
@@ -275,15 +275,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // show the dropdown list
     Object.keys(classCodes).forEach(function (k) {
-        var opt = document.createElement('option');
+        let opt = document.createElement('option');
         opt.appendChild(document.createTextNode(((classCodes[k] === k) ? "" : (k + ": ")) + classCodes[k]));
         opt.value = k;
         sel.appendChild(opt);
     });
 
     // pick COMS for starter
-    var url = new URL(window.location.href);
-    var selectedCode = url.searchParams.get("code") || "COMS";
+    let url = new URL(window.location.href);
+    let selectedCode = url.searchParams.get("code") || "COMS";
     showClassesByCode(selectedCode);
     sel.value = selectedCode;
 });
