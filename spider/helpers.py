@@ -18,11 +18,15 @@ def parse_course(course):
     return {
         'entry': block_title.getall(),
         'code': cls[1],
-        'num': cls[0].replace("\u00a0", " "),
+        'num': clear_class_num(cls[0]),
         'title': cls[2],
         'scheduled': True if course.css('div.desc_sched') else False,
         'points': "".join(course.css('p.courseblocktitle strong em::text').getall()),
-        'prereq': "".join(course.css('span.prereq *::text').getall()).replace("\u00a0", " "),
+        'prereq': clear_class_num("".join(course.css('span.prereq *::text').getall())),
         'descr': "".join(course.css('p.closed *::text').getall()),
         'instructors': instructors
     }
+
+
+def clear_class_num(num):
+    return num.replace("\u00a0", " ")

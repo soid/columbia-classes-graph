@@ -5,22 +5,37 @@ from scrapy import Request
 from scrapy.selector import Selector
 import urllib.parse
 from w3lib.html import remove_tags
-from helpers import parse_course
+from helpers import *
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ClassesSpider(scrapy.Spider):
     TYPE_WIKI_LINK_PROFESSOR = "wiki_prof_link"
 
     name = 'all-classes'
-    start_urls = [
-        # taken from http://bulletin.columbia.edu/general-studies/undergraduates/courses/?term=3&pl=0&ph=10&college=GS
-        'http://bulletin.columbia.edu/ribbit/index.cgi?page=shared-scopo-search.rjs&criteria=%7B%22department%22%3A%22%22%2C%22term%22%3A%223%22%2C%22level%22%3A%22%22%2C%22held%22%3A%22%22%2C%22begin%22%3A%22%22%2C%22end%22%3A%22%22%2C%22pl%22%3A%220%22%2C%22ph%22%3A%2210%22%2C%22keywords%22%3A%22%22%2C%22college%22%3A%22GS%22%7D',
-    ]
+
+    URLS_ = {
+        # taken from http://bulletin.columbia.edu/general-studies/courses/
+        'allclasses': 'http://bulletin.columbia.edu/ribbit/index.cgi?page=shared-scopo-search.rjs&criteria=%7B%22department%22%3A%22%22%2C%22term%22%3A%223%22%2C%22level%22%3A%22%22%2C%22held%22%3A%22%22%2C%22begin%22%3A%22%22%2C%22end%22%3A%22%22%2C%22pl%22%3A%220%22%2C%22ph%22%3A%2210%22%2C%22keywords%22%3A%22%22%2C%22college%22%3A%22GS%22%7D',
+        'Core: Global': 'http://bulletin.columbia.edu/general-studies/the-core/global-core/',
+    }
+    URLS_INVERT = {v: k for k, v in URLS_.items()}
+
+    start_urls = list(URLS_.values())
     custom_settings = {
         'HTTPCACHE_ENABLED': True
     }
 
     def parse(self, response):
+        logger.info('Parse function called on %s', response.url)
+        if ClassesSpider.URLS_INVERT[response.url] == 'allclasses':
+            yield from self.parse_all_classes(response)
+        else:
+            logger.info('Identified as core class group: %s', ClassesSpider.URLS_INVERT[response.url])
+            yield self.parse_core(ClassesSpider.URLS_INVERT[response.url], response)
+
+    def parse_all_classes(self, response):
         for course_html in response.css('results result description'):
             course = Selector(text=html.unescape(course_html.get()))
 
@@ -54,6 +69,16 @@ class ClassesSpider(scrapy.Spider):
                                         'instructor': instr})
 
             yield {**course_data, 'type': 'class'}
+
+    """
+    This function parses a list of core classes (only codes) in order to filter by only core classes.
+    """
+    def parse_core(self, core_group, response):
+        nums = [clear_class_num(class_code)
+                for class_code in response.css('.sc_courselist')[0].css('tr .codecol *::text').getall()]
+        return {'core-group': core_group,
+                'nums': nums,
+                'type': 'core_group'}
 
     # Parsing CULPA profs
 
@@ -108,7 +133,7 @@ class ClassesSpider(scrapy.Spider):
         instr = response.meta.get('instructor')
         json_response = json.loads(response.body_as_unicode())
         search = json_response['query']['search']
-        print('WIKI: Search results for', instr, ':', search)
+        logger.info('WIKI: Search results for %s : %s', instr, search)
 
         possible_match = []
         for result in search:
@@ -137,8 +162,8 @@ class ClassesSpider(scrapy.Spider):
                                 'instructor': instr,
                                 'wiki_title': result['title']})
 
-        print('WIKI: Not found obvious wiki search results for', instr,
-              '. Following articles:', [x['title'] for x in possible_match])
+        logger.info('WIKI: Not found obvious wiki search results for %s. Following articles: %s',
+                    instr, [x['title'] for x in possible_match])
         return
 
     @staticmethod
@@ -163,6 +188,6 @@ class ClassesSpider(scrapy.Spider):
         if "COLUMBIA UNIVERSITY" in page:
             return ClassesSpider.wiki_prof_link(instr, response.meta.get('wiki_title'))
         else:
-            print("WIKI: Rejecting article '" + response.meta.get('wiki_title') + "'. "
-                                                                                  "Not linked to professor: " + instr)
+            logger.info("WIKI: Rejecting article '%s'. Not linked to professor: %s",
+                        response.meta.get('wiki_title'), instr)
 
