@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // index by id
     let id2node = {};
-    for (let i=0; i<elements.nodes.length; i++) {
+    for (let i = 0; i < elements.nodes.length; i++) {
         id2node[elements.nodes[i].data.id] = elements.nodes[i];
     }
 
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* Mouse over */
     let selectedNode = null;
-    let showNodeDeps = function(node) {
+    let showNodeDeps = function (node) {
         let data = node.target.data();
         if (selectedNode != null) {
             // open class details if clicked selected node (for mobile)
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             "<a target='_blank' href='http://culpa.info/professors/" + instructors[instr]['culpa_id']
                             + "'>CULPA:" + instructors[instr]['count']
                             + (instructors[instr].nugget
-                                ? "<img alt='Wikipedia' src='images/gold_nugget.gif' height='12' width='11'/>" : "")
+                            ? ("<img alt='Wikipedia' src='images/" + instructors[instr].nugget + "_nugget.gif' height='12' width='11'/>") : "")
                             + "</a>");
                     }
                     if (instructors[instr] !== undefined && instructors[instr]['wiki'] !== undefined) {
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
     cy.on('tap', 'node', showNodeDeps);
 
     /* Mouse out */
-    let hideNodeDeps = function(node) {
+    let hideNodeDeps = function (node) {
         selectedNode = null;
         // cancel grey out unrelated classes
         cy.nodes().not(node.target.predecessors().nodes()).animate({
@@ -154,36 +154,50 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     cy.on('mouseout', 'node', hideNodeDeps);
 
-    /* show classes by code */
-    let showClassesByCode = function(code) {
+    /* show classes by code or group */
+    let showClassesByCode = function (code) {
+        let filterFunc;
+        let groupKeyword = "group:";
+        if (code.startsWith(groupKeyword)) {
+            let group = code.substring(groupKeyword.length).replace("_", " ");
+            let groupClasses = classGroups[group];
+            filterFunc = function (code, node) {
+                return groupClasses.indexOf(node.data.id) !== -1;
+            }
+        } else {
+            filterFunc = function (code, node) {
+                return node.data.code === code;
+            }
+        }
+
         cy.elements().remove();
         let shown = new Set();
         elements.nodes.forEach(n => {
-            if (n.data.code === code) {
+            if (filterFunc(code, n)) {
                 cy.add(n);
                 shown.add(n.data.num);
             }
         });
         elements.edges.forEach(e => {
-            if (e.data.code === code) {
-               if (id2node[e.data.source]) {
-                 if (!shown.has(e.data.source)) {
-                   cy.add(id2node[e.data.source]);
-                   shown.add(e.data.source);
-                 }
-               } else {
-                 return;
-               }
+            if (filterFunc(code, e)) {
+                if (id2node[e.data.source]) {
+                    if (!shown.has(e.data.source)) {
+                        cy.add(id2node[e.data.source]);
+                        shown.add(e.data.source);
+                    }
+                } else {
+                    return;
+                }
 
-               if (id2node[e.data.target]) {
-                 if (!shown.has(e.data.target)) {
-                    cy.add(id2node[e.data.target]);
-                    shown.add(e.data.target);
-                  }
-               } else {
-                 return;
-               }
-               cy.add(e);
+                if (id2node[e.data.target]) {
+                    if (!shown.has(e.data.target)) {
+                        cy.add(id2node[e.data.target]);
+                        shown.add(e.data.target);
+                    }
+                } else {
+                    return;
+                }
+                cy.add(e);
             }
         });
 
@@ -198,13 +212,13 @@ document.addEventListener('DOMContentLoaded', function () {
         layout.run();
     };
 
-    /* node click */
-    let openClassDetails = function(node) {
+    /* node click - open class page */
+    let openClassDetails = function (node) {
         let classId = node.target.data().id;
         let url = "http://bulletin.columbia.edu/search/?P=" + classId.replace(String.fromCharCode(160), "+");
         try { // your browser may block popups
             window.open(url);
-        } catch(e){ // fall back on url change
+        } catch (e) { // fall back on url change
             window.location.href = url;
         }
     };
@@ -220,58 +234,76 @@ document.addEventListener('DOMContentLoaded', function () {
         showClassesByCode(code);
     };
 
+    // typing in search box
     let search = document.getElementById("search");
     search.onkeypress = function (e) {
-      let term = e.target.value.trim().toUpperCase();
-      if (term === "") {
-          cy.nodes().animate({
-                  style: {
-                      backgroundColor: '#ABC4AB',
-                      borderWidth: 1
-                  }
-              },
-              aniOpt);
-          return;
-      }
-      let searchFunc = function(data) {
-          return data.num.includes(term)
-              || data.title.toUpperCase().includes(term)
-              || data.instructors.filter(instr => instr.toUpperCase().includes(term)).length > 0;
-      }
-      let found = cy.nodes().filter(node => searchFunc(node.data()));
-      if (found.length == 0 && e.key == "Enter") {
-        // nothing found, try other departments
-        elements.nodes.every(function(node, index) {
-            if (searchFunc(node.data)) {
-                console.log("found!" + node.data.code);
-                sel.value = node.data.code;
-                sel.dispatchEvent(new Event('change'));
-                return false;
-            }
-            return true;
-        });
-        search.dispatchEvent(new Event('change'));
-        return;
-      }
+        let term = e.target.value.trim().toUpperCase();
+        if (term === "") {
+            cy.nodes().animate({
+                    style: {
+                        backgroundColor: '#ABC4AB',
+                        borderWidth: 1
+                    }
+                },
+                aniOpt);
+            return;
+        }
+        let searchFunc = function (data) {
+            return data.num.includes(term)
+                || data.title.toUpperCase().includes(term)
+                || data.instructors.filter(instr => instr.toUpperCase().includes(term)).length > 0;
+        };
+        let found = cy.nodes().filter(node => searchFunc(node.data()));
+        if (found.length === 0 && e.key === "Enter") {
+            // nothing found, try other departments
+            elements.nodes.every(function (node, index) {
+                if (searchFunc(node.data)) {
+                    console.log("found!" + node.data.code);
+                    sel.value = node.data.code;
+                    sel.dispatchEvent(new Event('change'));
+                    return false;
+                }
+                return true;
+            });
+            search.dispatchEvent(new Event('change'));
+            return;
+        }
         let notFound = cy.nodes().not(found);
-      found.animate({
-            style: {
-              backgroundColor: '#ABD897',
-              borderWidth: 1
-            }
-          },
-          aniOpt);
-      notFound.animate({
-            style: {
-                backgroundColor: '#ABB0AB',
-            }
-          },
-          aniOpt);
+        found.animate({
+                style: {
+                    backgroundColor: '#ABD897',
+                    borderWidth: 1
+                }
+            },
+            aniOpt);
+        notFound.animate({
+                style: {
+                    backgroundColor: '#ABB0AB',
+                }
+            },
+            aniOpt);
 
     };
     search.onchange = search.onkeypress;
     search.onpaste = search.onkeypress;
     search.oninput = search.onkeypress;
+
+    // add classes groups in the dropdown list
+    Object.keys(classGroups).forEach(function (k) {
+        let opt = document.createElement('option');
+        opt.appendChild(document.createTextNode(k));
+        opt.value = "group:" + k.replace(" ", "_");
+        sel.appendChild(opt);
+    });
+
+    // add divisor
+    {
+        let opt = document.createElement('option');
+        opt.appendChild(document.createTextNode("---"));
+        opt.value = "";
+        opt.disabled = true;
+        sel.appendChild(opt);
+    }
 
     // show the dropdown list
     Object.keys(classCodes).forEach(function (k) {

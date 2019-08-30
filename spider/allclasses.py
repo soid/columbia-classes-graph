@@ -1,3 +1,5 @@
+# This is Scrapy crawler script that gets the data from Columbia University website, Wikipedia, culpa.info, etc
+
 import json
 import html
 import scrapy
@@ -32,8 +34,8 @@ class ClassesSpider(scrapy.Spider):
         if ClassesSpider.URLS_INVERT[response.url] == 'allclasses':
             yield from self.parse_all_classes(response)
         else:
-            logger.info('Identified as core class group: %s', ClassesSpider.URLS_INVERT[response.url])
-            yield self.parse_core(ClassesSpider.URLS_INVERT[response.url], response)
+            logger.info('Identified as classes group: %s', ClassesSpider.URLS_INVERT[response.url])
+            yield self.parse_classes_group(ClassesSpider.URLS_INVERT[response.url], response)
 
     def parse_all_classes(self, response):
         for course_html in response.css('results result description'):
@@ -71,14 +73,14 @@ class ClassesSpider(scrapy.Spider):
             yield {**course_data, 'type': 'class'}
 
     """
-    This function parses a list of core classes (only codes) in order to filter by only core classes.
+    This function parses a list of classes group (only codes) in order to filter by only that group (e.g. the Core)
     """
-    def parse_core(self, core_group, response):
+    def parse_classes_group(self, classes_group, response):
         nums = [clear_class_num(class_code)
                 for class_code in response.css('.sc_courselist')[0].css('tr .codecol *::text').getall()]
-        return {'core-group': core_group,
+        return {'classes-group': classes_group,
                 'nums': nums,
-                'type': 'core_group'}
+                'type': 'classes_group'}
 
     # Parsing CULPA profs
 

@@ -1,3 +1,5 @@
+# This script converts crawled results into a json data file used by the website frontend to show all available info
+
 import datetime
 import re
 import json
@@ -22,6 +24,7 @@ class Converter:
         self.courses = {}
         self.culpa_links = {}
         self.codes = set()
+        self.class_groups = {}
         self.tmp_id = 1
 
     def add_course(self, course):
@@ -71,7 +74,7 @@ class Converter:
 
     def parse(self, data):
         # create instructors index
-        link_re = re.compile(r'\/(\d+)$')
+        link_re = re.compile(r'/(\d+)$')
         courses = []
         culpa_courses = {}
         for entry in data:
@@ -90,6 +93,8 @@ class Converter:
                     'count': entry['count'],
                     'id': link_re.search(entry["link"]).group(1)
                 }
+            if entry['type'] == 'classes_group':
+                self.add_classes_group(entry['classes-group'], entry['nums'])
 
         # create nodes
         for course in courses:
@@ -128,6 +133,10 @@ class Converter:
             if num in c:
                 return self.courses[c]
         return None
+
+    # some classes are grouped no by the class code, but by other means, e.g. the Core
+    def add_classes_group(self, group_name, nums):
+        self.class_groups[group_name] = nums
 
     PREREQ_PATTERN = re.compile(r'([A-Z]{4} [A-Z][A-Z]?[0-9]{4}|[A-Z][A-Z]?[0-9]{4}|[oO][rR]|[aA][nN][dD])')
 
@@ -187,6 +196,11 @@ if __name__ == "__main__":
         else:
             codesDict[c] = c
     f.write("classCodes = " + json.dumps(codesDict) + ";\n")
+
+    groupsDict = {}
+    for group_name in obj.class_groups.keys():
+        groupsDict[group_name] = obj.class_groups[group_name]
+    f.write("classGroups = " + json.dumps(groupsDict) + ";\n")
 
     f.write("instructors = " + json.dumps(obj.culpa_links) + ";\n")
 
