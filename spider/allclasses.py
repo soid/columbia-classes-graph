@@ -76,7 +76,7 @@ class ClassesSpider(scrapy.Spider):
     This function parses a list of classes group (only codes) in order to filter by only that group (e.g. the Core)
     """
     def parse_classes_group(self, classes_group, response):
-        nums = [clear_class_num(class_code)
+        nums = [clear_utf_spaces(class_code)
                 for class_code in response.css('.sc_courselist')[0].css('tr .codecol *::text').getall()]
         return {'classes-group': classes_group,
                 'nums': nums,
