@@ -34,6 +34,30 @@ document.addEventListener('DOMContentLoaded', function () {
         duration: 200
     };
 
+    /* Filters changes. If any parameter is undefined then pick the current one */
+    let changeFilters = function(newParams) {
+        let url = new URL(window.location.href);
+        let allParams = ["code", "semester"];
+        let urlParams = [];
+
+        // creates new parameter in url and adds it to urlParams list
+        let makeParam = function (name, newValue) {
+            let selected = url.searchParams.get(name);
+            let str = newValue === undefined
+                ? (selected ? (name + "=" + selected) : "")
+                : (name + "=" + newValue);
+            urlParams.push(str);
+        };
+
+        // process all new params
+        allParams.forEach(function (paramName) {
+            makeParam(paramName, newParams[paramName]);
+        });
+
+        window.history.pushState("object or string", "Title",
+            "index.html?" + urlParams.join("&"));
+    };
+
     /* Mouse over */
     let selectedNode = null;
     let showNodeDeps = function (node) {
@@ -155,18 +179,26 @@ document.addEventListener('DOMContentLoaded', function () {
     cy.on('mouseout', 'node', hideNodeDeps);
 
     /* show classes by code or group */
-    let showClassesByCode = function (code) {
+    let applyFilters = function () {
+        let url = new URL(window.location.href);
+        let code = url.searchParams.get("code") || "COMS";
+        let semester = url.searchParams.get("semester") || "all";
+
         let filterFunc;
         let groupKeyword = "group:";
         if (code.startsWith(groupKeyword)) {
             let group = code.substring(groupKeyword.length).replace("_", " ");
             let groupClasses = classGroups[group];
             filterFunc = function (code, node) {
-                return groupClasses.indexOf(node.data.id) !== -1;
+                let groupFilter = groupClasses.indexOf(node.data.id) !== -1;
+                let semesterFilter = node.data.schedule[semester] !== undefined || semester === "all";
+                return groupFilter && semesterFilter;
             }
         } else {
             filterFunc = function (code, node) {
-                return node.data.code === code;
+                let codeFilter = node.data.code === code;
+                let semesterFilter = node.data.schedule[semester] !== undefined || semester === "all";
+                return codeFilter && semesterFilter;
             }
         }
 
@@ -178,8 +210,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 shown.add(n.data.num);
             }
         });
+        let filtered = new Set(shown);
+        let filterEdge = function (e) {
+            return filtered.has(e.data.source) || filtered.has(e.data.target);
+        };
         elements.edges.forEach(e => {
-            if (filterFunc(code, e)) {
+            if (filterEdge(e)) {
+                // show edge source if it's not shown
                 if (id2node[e.data.source]) {
                     if (!shown.has(e.data.source)) {
                         cy.add(id2node[e.data.source]);
@@ -189,6 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
 
+                // show edge target if it's not shown
                 if (id2node[e.data.target]) {
                     if (!shown.has(e.data.target)) {
                         cy.add(id2node[e.data.target]);
@@ -230,8 +268,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let sel = document.getElementById("codesList");
     sel.onchange = function (e) {
         let code = e.target.value;
-        window.history.pushState("object or string", "Title", "index.html?code=" + code);
-        showClassesByCode(code);
+        changeFilters({"code": code});
+        applyFilters();
     };
 
     // typing in search box
@@ -314,8 +352,37 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // pick COMS for starter
-    let url = new URL(window.location.href);
-    let selectedCode = url.searchParams.get("code") || "COMS";
-    showClassesByCode(selectedCode);
-    sel.value = selectedCode;
+    {
+        let url = new URL(window.location.href);
+        let selectedCode = url.searchParams.get("code") || "COMS";  // TODO: read the parameter from a single place
+        sel.value = selectedCode;
+    }
+
+    // add semesters filter
+    {
+        let semesters = new Set();
+        for (let i = 0; i < elements.nodes.length; i++) {
+            Object.keys(elements.nodes[i].data.schedule).forEach(function (e) {
+                semesters.add(e);
+            });
+        }
+
+        let semesterSel = document.getElementById("semesterList");
+        semesters.forEach(function (k) {
+            let opt = document.createElement('option');
+            opt.appendChild(document.createTextNode(k));
+            opt.value = k;
+            semesterSel.appendChild(opt);
+        });
+        semesterSel.onchange = function (e) {
+            let semester = e.target.value;
+            changeFilters({"semester": semester});
+            applyFilters();
+        };
+        let url = new URL(window.location.href);
+        let selectedSemester = url.searchParams.get("semester") || "all";
+        semesterSel.value = selectedSemester;
+    }
+
+    applyFilters();
 });
