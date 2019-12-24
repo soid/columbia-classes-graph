@@ -17,11 +17,11 @@ class TestDataCanary(TestCase):
 
         # checks
         diff1 = check_set.difference(profs_with_links.keys())
-        print("Those professors are in check set, but were not linked:")
+        print("Those professors are in check set, but were not linked to Wikipedia:")
         print(diff1)
 
         diff2 = set(profs_with_links.keys()).difference(check_set)
-        print("Those professors were linked, but are not in check set:")
+        print("Those professors were linked, but are not in check set for Wikipedia:")
         print(diff2)
         self.print_prof_links(diff2, profs_with_links)
         assert len(diff1) == 0 and len(diff2) == 0

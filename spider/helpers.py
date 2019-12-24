@@ -7,6 +7,7 @@ CLASS_RE = r'(([A-Z]{4})\s[A-Z]{1,2}\d+)\s(.+)$'
 def parse_course(course):
     block_title = course.css('p.courseblocktitle strong::text')
     cls = block_title.re(CLASS_RE)
+    logger.info('Parsing class: %s', cls)
 
     # scan instructors
     semester = None
