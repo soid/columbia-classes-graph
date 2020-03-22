@@ -8,7 +8,9 @@ import json
 # Run some tests on crawled data
 class TestDataCanary(TestCase):
     def test_wiki_links(self):
-        data = Converter.get_data()
+        files = Converter.get_data_files()
+        files.sort()
+        data = Converter.get_data(files[-1])
         wiki_links = [x for x in data if x['type'] == ClassesSpider.TYPE_WIKI_LINK_PROFESSOR]
         profs_with_links = {x['instructor']: x for x in wiki_links if 'wiki_title' in x}
         # assert len(profs_with_links) == len(set(profs_with_links))

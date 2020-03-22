@@ -3,20 +3,36 @@
 import datetime
 import re
 import json
-from os.path import dirname, realpath
+from os.path import dirname, isfile, realpath
+import os
 
 from allclasses import ClassesSpider
+
+
+# Converter for one semester data
+from helpers import sort_semesters, get_semester_by_filename
 
 
 class Converter:
     courseNumPattern = re.compile(r'^\w')
 
     @staticmethod
-    def get_data():
-        with open(dirname(dirname(realpath(__file__))) + '/data/all-classes.json', 'r') as file:
+    def get_data(file):
+        with open(Converter.get_data_dir() + file, 'r') as file:
             return json.loads(file.read())
 
-    def __init__(self):
+    @staticmethod
+    def get_data_files():
+        files = [x for x in os.listdir(Converter.get_data_dir()) if x.startswith("data-")]
+        return files
+
+    @staticmethod
+    def get_data_dir():
+        return dirname(dirname(realpath(__file__))) + '/data/'
+
+    """Load parsed data from file"""
+    def __init__(self, semester):
+        self.semester = semester
         self.elements = {}
         self.elements['nodes'] = []
         self.elements['edges'] = []
@@ -26,9 +42,12 @@ class Converter:
         self.codes = set()
         self.class_groups = {}
         self.tmp_id = 1
+        self.semesters = {}
 
     def add_course(self, course):
         course['num'] = course['num']
+        for semester in course['schedule'].keys():
+            self.semesters[semester] = True
         if course['scheduled']:
             self.codes.add(course['code'])
             data = {
@@ -79,6 +98,9 @@ class Converter:
         culpa_courses = {}
         for entry in data:
             if entry['type'] == 'class':
+                if self.semester not in entry['schedule'].keys():
+                    # skip if not this semester
+                    continue
                 courses.append(entry)
             if entry['type'] == 'culpa_prof_link':
                 self.add_prof_info(entry['instructor'],
@@ -102,7 +124,7 @@ class Converter:
                 course['culpa'] = culpa_courses[course['num']]
             title = course['title']
             num = course['num']
-            print(num + " : " + title)
+            # print(num + " : " + title)
             self.add_course(course)
             
         # create edges
@@ -138,6 +160,9 @@ class Converter:
     def add_classes_group(self, group_name, nums):
         self.class_groups[group_name] = nums
 
+    def get_semesters(self):
+        return sort_semesters(self.semesters.keys())
+
     PREREQ_PATTERN = re.compile(r'([A-Z]{4} [A-Z][A-Z]?[0-9]{4}|[A-Z][A-Z]?[0-9]{4}|[oO][rR]|[aA][nN][dD])')
 
     # Retrieves a list of prerequisites from a free text form
@@ -168,43 +193,58 @@ class Converter:
         return prereq
 
 
+class AllSemestersConverter:
+
+    def process(self):
+        files = Converter.get_data_files()
+        for data_file in files:
+            print("Processing data for:", data_file)
+            self._process_file(data_file)
+
+    def _process_file(self, file):
+        data = Converter.get_data(file)
+
+        obj = Converter(get_semester_by_filename(file))
+        elements = obj.parse(data)
+        filename = obj.get_semesters()[-1]
+        filename = filename.replace(" ", "-")
+
+        # write output
+        f = open('data/classes-' + filename + '.js', 'w')
+        f.write("elements = ")
+        f.write(json.dumps(elements))
+        f.write(";\ngenerationDate = '" + datetime.datetime.now().strftime("%m/%d/%Y") + "';\n")
+
+        # load codes mapper
+        mf = open('spider/department-codes.json', 'r')
+        code_mapper = json.loads(mf.read())
+        mf.close()
+
+        # generate a list of all codes
+        codes = list(obj.codes)
+        codes.sort()
+        codesDict = {}
+        for c in codes:
+            if c in code_mapper:
+                codesDict[c] = code_mapper[c]
+                del code_mapper[c]
+            else:
+                codesDict[c] = c
+        f.write("classCodes = " + json.dumps(codesDict) + ";\n")
+
+        groupsDict = {}
+        for group_name in obj.class_groups.keys():
+            groupsDict[group_name] = obj.class_groups[group_name]
+        f.write("classGroups = " + json.dumps(groupsDict) + ";\n")
+
+        f.write("instructors = " + json.dumps(obj.culpa_links) + ";\n")
+
+        f.close()
+
+        # some debug output
+        # print(code_mapper)
+
+
 if __name__ == "__main__":
-    data = Converter.get_data()
-
-    obj = Converter()
-    elements = obj.parse(data)
-
-    # write output
-    f = open('data/classes-data.js', 'w')
-    f.write("elements = ")
-    f.write(json.dumps(elements))
-    f.write(";\ngenerationDate = '" + datetime.datetime.now().strftime("%m/%d/%Y") + "';\n")
-
-    # load codes mapper
-    mf = open('spider/department-codes.json', 'r')
-    code_mapper = json.loads(mf.read())
-    mf.close()
-
-    # generate a list of all codes
-    codes = list(obj.codes)
-    codes.sort()
-    codesDict = {}
-    for c in codes:
-        if c in code_mapper:
-            codesDict[c] = code_mapper[c]
-            del code_mapper[c]
-        else:
-            codesDict[c] = c
-    f.write("classCodes = " + json.dumps(codesDict) + ";\n")
-
-    groupsDict = {}
-    for group_name in obj.class_groups.keys():
-        groupsDict[group_name] = obj.class_groups[group_name]
-    f.write("classGroups = " + json.dumps(groupsDict) + ";\n")
-
-    f.write("instructors = " + json.dumps(obj.culpa_links) + ";\n")
-
-    f.close()
-
-    # some debug output
-    print(code_mapper)
+    obj = AllSemestersConverter()
+    obj.process()

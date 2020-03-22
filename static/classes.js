@@ -1,5 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
-
+function loadColumbiaGraph() {
     // index by id
     let id2node = {};
     for (let i = 0; i < elements.nodes.length; i++) {
@@ -35,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     /* Filters changes. If any parameter is undefined then pick the current one */
-    let changeFilters = function(newParams) {
+    let changeFilters = function (newParams) {
         let url = new URL(window.location.href);
         let allParams = ["code", "semester"];
         let urlParams = [];
@@ -55,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         window.history.pushState("object or string", "Title",
-            "index.html?" + urlParams.join("&"));
+            "?" + urlParams.join("&"));
     };
 
     /* Mouse over */
@@ -93,14 +92,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             "<a target='_blank' href='http://culpa.info/professors/" + instructors[instr]['culpa_id']
                             + "'>CULPA:" + instructors[instr]['count']
                             + (instructors[instr].nugget
-                            ? ("<img alt='Wikipedia' src='images/" + instructors[instr].nugget + "_nugget.gif' height='12' width='11'/>") : "")
+                            ? ("<img alt='Wikipedia' src='static/images/" + instructors[instr].nugget + "_nugget.gif' height='12' width='11'/>") : "")
                             + "</a>");
                     }
                     if (instructors[instr] !== undefined && instructors[instr]['wiki'] !== undefined) {
                         instructorLinks.push(
                             "<a target='_blank' href='https://en.wikipedia.org/wiki/"
                             + instructors[instr]['wiki']
-                            + "'><img alt='Wikipedia' class='imglink' src='images/wikipedia.ico' height='18' width='18'/></a>");
+                            + "'><img alt='Wikipedia' class='imglink' src='static/images/wikipedia.ico' height='18' width='18'/></a>");
                     }
                     if (instructorLinks.length > 0) {
                         instructorInfo += " (" + instructorLinks.join(" ") + ")";
@@ -377,7 +376,16 @@ document.addEventListener('DOMContentLoaded', function () {
         semesterSel.onchange = function (e) {
             let semester = e.target.value;
             changeFilters({"semester": semester});
-            applyFilters();
+
+            // find semester id
+            let semesterStr = getSemesterId(semester);
+
+            // load data
+            var script = document.createElement("script");
+            script.src = "data/classes-" + semesterStr + ".js";
+            script.type = "application/javascript";
+            script.onload = applyFilters;
+            document.head.appendChild(script);
         };
         let url = new URL(window.location.href);
         let selectedSemester = url.searchParams.get("semester") || "all";
@@ -385,4 +393,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     applyFilters();
-});
+}
+
+function getSemesterId(semester) {
+    let semesterStr;
+    if (semester == undefined) {
+        semesterStr = "Spring-2020";
+    } else {
+        semesterStr = semester;
+    }
+    return semesterStr.replace(" ", "-");
+}
+
+// first load
+(function() {
+    let url = new URL(window.location.href);
+    let semesterStr = getSemesterId(url.searchParams.get("semester"));
+
+    // load data
+    var script = document.createElement("script");
+    script.src = "data/classes-" + semesterStr + ".js";
+    script.type = "application/javascript";
+    script.onload = loadColumbiaGraph;
+    document.head.appendChild(script);
+})();

@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from converter import Converter
+from helpers import sort_semesters, get_semester_by_filename
 
 
 class TestConverter(TestCase):
@@ -20,6 +21,15 @@ class TestConverter(TestCase):
                               ["MATH UN1202"])
         TestConverter.compare("Prerequisites: (COMS W1004) or (COMS W1005) or (COMS W1007) or (ENGI E1006)",
                               [["COMS W1004", "COMS W1005", "COMS W1007", "ENGI E1006"]])
+
+    def test_data_dir(self):
+        assert len(Converter.get_data_files()) > 0
+        get_semester_by_filename("data-2019-1.json") == "Spring 2019"
+
+    def test_sort_semesters(self):
+        semesters = ["Summer 2020", "Fall 2019", "Spring 2020", "Spring 2019", ]
+        semesters = sort_semesters(semesters)
+        assert semesters == ['Spring 2019', 'Fall 2019', 'Spring 2020', 'Summer 2020']
 
     @staticmethod
     def compare(prereq_str, expected):

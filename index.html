@@ -9,14 +9,13 @@
 
 	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
 	<!-- https://unpkg.com/cytoscape/dist/cytoscape.min.js -->
-	<script src="lib/cytoscape.min.js"></script>
-    <script src="data/classes-data.js"></script>
-	<link rel="stylesheet" href="style.css">
+	<script src="static/lib/cytoscape.min.js"></script>
+	<link rel="stylesheet" href="static/style.css">
 </head>
 
 <body>
 	<div class="site-title">
-		<img src="images/cu_logo.gif" height="55" width="337"/>
+		<img src="static/images/cu_logo.gif" height="55" width="337"/>
 	</div>
 
 	<div class="top-hud">
@@ -33,7 +32,6 @@
 			<label><input type="checkbox" id="l3000" /> 3000</label>
 			<label><input type="checkbox" id="l4000" /> 4000</label>
 			<select id="semesterList">
-				<option value="all">All Semesters</option>
 			</select>
 			<br/>
 			<label><input type="checkbox" id="d-mon"/> Mon</label>
@@ -57,7 +55,7 @@
 				Drag the nodes, zoom in and out, click<br/>
 				Updated on <span id="generationDate"></span>
 				<a href="https://github.com/soid/columbia-classes-graph">
-					<img src="images/GitHub-Mark-64px.png" height="16" width="16" title="Columbia University" /> Source Code
+					<img src="static/images/GitHub-Mark-64px.png" height="16" width="16" title="Columbia University" /> Source Code
 				</a>
 			</small>
 		</div>
@@ -66,12 +64,12 @@
 	<div>
 		<small id="source-code-small">
 			<a href="https://github.com/soid/columbia-classes-graph">
-				<img src="images/GitHub-Mark-64px.png" height="16" width="16"/>
+				<img src="static/images/GitHub-Mark-64px.png" height="16" width="16"/>
 			</a>
 		</small>
 	</div>
 
-	<script src="classes.js"></script>
+	<script src="static/classes.js"></script>
 </body>
 
 </html>

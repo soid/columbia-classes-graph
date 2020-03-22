@@ -4,13 +4,13 @@ I just wanted to see the class requirements on a graph.
 
 ## Online
 
-http://columbia.dicefield.com/
+http://cugraph.info/
 
 ## Generating Locally
 
-Run `run.sh`. You may need to run `setup.sh` first.
+Run `run-crawler.sh` for crawling data files. You may need to run `setup.sh` first.
 
-Open index.html
+Then run `run-debug-server.sh`. Navigate the browser to the provided URL.
 
 ## Development
 
