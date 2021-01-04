@@ -24,6 +24,7 @@ class Converter:
     @staticmethod
     def get_data_files():
         files = [x for x in os.listdir(Converter.get_data_dir()) if x.startswith("data-")]
+        files.sort()
         return files
 
     @staticmethod
@@ -195,54 +196,65 @@ class Converter:
 
 class AllSemestersConverter:
 
+    def __init__(self):
+        self.semesters = {}
+
     def process(self):
         files = Converter.get_data_files()
         for data_file in files:
             print("Processing data for:", data_file)
             self._process_file(data_file)
+        self._process_semesters_file()
 
     def _process_file(self, file):
         data = Converter.get_data(file)
 
         obj = Converter(get_semester_by_filename(file))
         elements = obj.parse(data)
-        filename = obj.get_semesters()[-1]
-        filename = filename.replace(" ", "-")
+        print(obj.get_semesters())
+        for semester in obj.get_semesters():
+            filename = semester.replace(" ", "-")
+            self.semesters[semester] = filename
+            print(filename)
 
-        # write output
-        f = open('data/classes-' + filename + '.js', 'w')
-        f.write("elements = ")
-        f.write(json.dumps(elements))
-        f.write(";\ngenerationDate = '" + datetime.datetime.now().strftime("%m/%d/%Y") + "';\n")
+            # write output
+            f = open('data/classes-' + filename + '.js', 'w')
+            f.write("elements = ")
+            f.write(json.dumps(elements))
+            f.write(";\ngenerationDate = '" + datetime.datetime.now().strftime("%m/%d/%Y") + "';\n")
 
-        # load codes mapper
-        mf = open('spider/department-codes.json', 'r')
-        code_mapper = json.loads(mf.read())
-        mf.close()
+            # load codes mapper
+            mf = open('spider/department-codes.json', 'r')
+            code_mapper = json.loads(mf.read())
+            mf.close()
 
-        # generate a list of all codes
-        codes = list(obj.codes)
-        codes.sort()
-        codesDict = {}
-        for c in codes:
-            if c in code_mapper:
-                codesDict[c] = code_mapper[c]
-                del code_mapper[c]
-            else:
-                codesDict[c] = c
-        f.write("classCodes = " + json.dumps(codesDict) + ";\n")
+            # generate a list of all codes
+            codes = list(obj.codes)
+            codes.sort()
+            codesDict = {}
+            for c in codes:
+                if c in code_mapper:
+                    codesDict[c] = code_mapper[c]
+                    del code_mapper[c]
+                else:
+                    codesDict[c] = c
+            f.write("classCodes = " + json.dumps(codesDict) + ";\n")
 
-        groupsDict = {}
-        for group_name in obj.class_groups.keys():
-            groupsDict[group_name] = obj.class_groups[group_name]
-        f.write("classGroups = " + json.dumps(groupsDict) + ";\n")
+            groupsDict = {}
+            for group_name in obj.class_groups.keys():
+                groupsDict[group_name] = obj.class_groups[group_name]
+            f.write("classGroups = " + json.dumps(groupsDict) + ";\n")
 
-        f.write("instructors = " + json.dumps(obj.culpa_links) + ";\n")
+            f.write("instructors = " + json.dumps(obj.culpa_links) + ";\n")
 
+            f.close()
+
+    def _process_semesters_file(self):
+        f = open('data/semesters.js', 'w')
+        f.write("semesters = ")
+        f.write(json.dumps(self.semesters))
+        f.write(";\n")
         f.close()
-
-        # some debug output
-        # print(code_mapper)
 
 
 if __name__ == "__main__":

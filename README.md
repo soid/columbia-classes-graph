@@ -6,9 +6,19 @@ I just wanted to see the class requirements on a graph.
 
 http://cugraph.info/
 
-## Generating Locally
+## Setup
 
-Run `run-crawler.sh` for crawling data files. You may need to run `setup.sh` first.
+You may need to run `setup.sh` first.
+
+
+## Running Crawler Locally
+
+Run `run-crawler.sh` for crawling data files.
+
+
+
+
+## Running Debug Server Locally
 
 Then run `run-debug-server.sh`. Navigate the browser to the provided URL.
 

@@ -26,8 +26,8 @@ class ClassesSpider(scrapy.Spider):
 
     start_urls = list(URLS_.values())
     custom_settings = {
-        'HTTPCACHE_ENABLED': False
-        # 'HTTPCACHE_ENABLED': True
+        # 'HTTPCACHE_ENABLED': False
+        'HTTPCACHE_ENABLED': True
     }
 
     def parse(self, response):
