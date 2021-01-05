@@ -272,12 +272,30 @@ class CUGraph {
     }
 
     loadSemesters() {
+        // sort semesters
         let sems = new Set();
-        Object.keys(semesters).forEach(function (name) {
+        let slist = Object.keys(semesters);
+        slist.sort((a, b) => {
+            let alist = a.split(" ");
+            let blist = b.split(" ");
+            if (alist[1] != blist[1]) // not same year
+                return alist[1] - blist[1];
+            let conv = function(term) {
+                if (term == 'Spring') return 1;
+                if (term == 'Summer') return 2;
+                if (term == 'Fall') return 3;
+            }
+            alist[0] = conv(alist[0]);
+            blist[0] = conv(blist[0]);
+
+            return alist[0] - blist[0];
+        });
+        slist.forEach(function (name) {
             sems.add({name: name, value: semesters[name]});
         });
         sems.add({name: "all semesters", value: "all"});
 
+        // add semesters to dropdown list
         let semesterSel = document.getElementById("semesterList");
         sems = Array.from(sems);
         sems.slice().reverse().forEach(function (sem) {
@@ -293,6 +311,7 @@ class CUGraph {
 
             // find semester id
             let semesterStr = me.getSemesterId(semester);
+            elements = null;
             loadData("classes-" + semesterStr + ".js", ev => me.applyFilters());
         };
         let url = new URL(window.location.href);
