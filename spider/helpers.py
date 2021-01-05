@@ -68,11 +68,11 @@ RE_FILENAME = r"data-(\d{4})-(\d)\.json"
 
 # data-2019-1.json -> Spring 2019
 def get_semester_by_filename(filename):
-    m = re.match(r"data-(\d{4})-(\d)\.json", filename)
+    m = re.match(r"(\d{4})-(\w+)\.json", filename)
     assert m
     year = m.group(1)
     month = m.group(2)
-    return SEMESTER_NAME_TO_MONTH_NUMBER_REVERSE[month].capitalize() + " " + year
+    return month.capitalize() + " " + year
 
 
 # sort semesters by name, e.g. Fall 2019 < Spring 2020

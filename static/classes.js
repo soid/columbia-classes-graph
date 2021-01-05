@@ -17,7 +17,7 @@ class CUGraph {
                 {
                     selector: 'node',
                     style: {
-                        'content': 'data(num)',
+                        'content': 'data(course_code)',
                         'background-color': 'data(color)',
                         'color': 'black',
                         'height': 'data(size)',
@@ -54,18 +54,20 @@ class CUGraph {
             selectedNode = node;
 
             // show course info
-            document.getElementById('course-info').innerHTML = data.id + ": " + data.title
-                + " " + data.points
-                + (data.culpa
-                    ? (" (<a target='_blank' href='http://culpa.info/courses/" + data.culpa.id + "'>" +
-                        "CULPA:" + data.culpa.count + "</a>)")
+            document.getElementById('course-info').innerHTML = data.id + ": " + data.course_title
+                + " (" + plural(data.points, "point") + ")"
+                + (data.instructor_culpa_link
+                    ? (" (<a target='_blank' href='" + data.instructor_culpa_link + "'>" +
+                        "CULPA:" + data.instructor_culpa_reviews_count + "</a>)")
                     : "")
-                + "<br/>" + data.prereq;
+                ;
 
             // show instructors info
-            document.getElementById('course-descr').innerHTML = data.descr;
+            document.getElementById('course-descr').innerHTML = data.course_descr;
             if (data.instructors.length > 0) {
+            // if (data.instructors) {
                 document.getElementById('instructors').innerHTML = "Taught by " +
+                    // data.instructor; // TODO fix it
                     data.instructors.map(instr => {
                         let instructorInfo = instr;
                         let instructorLinks = [];
@@ -182,10 +184,11 @@ class CUGraph {
 
         // typing in search box
         let search = document.getElementById("search");
+        let me = this;
         search.onkeypress = function (e) {
             let term = e.target.value.trim().toUpperCase();
             if (term === "") {
-                this.cy().nodes().animate({
+                me.cy.nodes().animate({
                         style: {
                             backgroundColor: '#ABC4AB',
                             borderWidth: 1
@@ -195,11 +198,10 @@ class CUGraph {
                 return;
             }
             let searchFunc = function (data) {
-                return data.num.includes(term)
-                    || data.title.toUpperCase().includes(term)
-                    || data.instructors.filter(instr => instr.toUpperCase().includes(term)).length > 0;
+                return data.course_code.includes(term)
+                    || data.course_title.toUpperCase().includes(term);
             };
-            let found = this.cy().nodes().filter(node => searchFunc(node.data()));
+            let found = me.cy.nodes().filter(node => searchFunc(node.data()));
             if (found.length === 0 && e.key === "Enter") {
                 // nothing found, try other departments
                 elements.nodes.every(function (node, index) {
@@ -214,7 +216,7 @@ class CUGraph {
                 search.dispatchEvent(new Event('change'));
                 return;
             }
-            let notFound = this.cy().nodes().not(found);
+            let notFound = me.cy.nodes().not(found);
             found.animate({
                     style: {
                         backgroundColor: '#ABD897',
@@ -271,13 +273,14 @@ class CUGraph {
 
     loadSemesters() {
         let sems = new Set();
-        sems.add({name: "all semesters", value: "all"});
         Object.keys(semesters).forEach(function (name) {
             sems.add({name: name, value: semesters[name]});
         });
+        sems.add({name: "all semesters", value: "all"});
 
         let semesterSel = document.getElementById("semesterList");
-        sems.forEach(function (sem) {
+        sems = Array.from(sems);
+        sems.slice().reverse().forEach(function (sem) {
             let opt = document.createElement('option');
             opt.appendChild(document.createTextNode(sem.name));
             opt.value = sem.value;
@@ -340,7 +343,7 @@ class CUGraph {
             }
         } else {
             filterFunc = function (code, node) {
-                let codeFilter = node.data.code === code;
+                let codeFilter = node.data.department_code === code;
                 // let semesterFilter = node.data.schedule[semester] !== undefined || semester === "all";
                 return codeFilter && semesterFilter;
             }
@@ -351,7 +354,7 @@ class CUGraph {
         elements.nodes.forEach(n => {
             if (filterFunc(code, n)) {
                 this.cy.add(n);
-                shown.add(n.data.num);
+                shown.add(n.data.course_code);
             }
         });
         let filtered = new Set(shown);
@@ -412,6 +415,14 @@ function loadData(name, onLoad) {
     script.type = "application/javascript";
     script.onload = onLoad;
     document.head.appendChild(script);
+}
+
+function plural(count, noun) {
+    if (count == 1) {
+        return count + " " + noun
+    } else {
+        return count + " " + noun + "s"
+    }
 }
 
 // executed when this script is loaded
