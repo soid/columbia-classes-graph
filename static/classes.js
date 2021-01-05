@@ -6,6 +6,7 @@ class CUGraph {
     }
 
     loadColumbiaGraph() {
+        let me = this;
         // index by id
         for (let i = 0; i < elements.nodes.length; i++) {
             this.id2node[elements.nodes[i].data.id] = elements.nodes[i];
@@ -178,13 +179,12 @@ class CUGraph {
         let sel = document.getElementById("codesList");
         sel.onchange = function (e) {
             let code = e.target.value;
-            this.changeFilters({"code": code});
-            this.applyFilters();
+            me.changeFilters({"code": code});
+            me.applyFilters();
         };
 
         // typing in search box
         let search = document.getElementById("search");
-        let me = this;
         search.onkeypress = function (e) {
             let term = e.target.value.trim().toUpperCase();
             if (term === "") {

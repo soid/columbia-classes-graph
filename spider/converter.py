@@ -82,13 +82,15 @@ class Converter:
         if pre == num:
             return
 
-        self.elements['edges'].append({
+        nu = {
             'data': {
                 'source': pre,
                 'target': num,
                 'code': code
             }
-        })
+        }
+        if nu not in self.elements['edges']:
+            self.elements['edges'].append(nu)
 
     def parse(self, data):
         # create instructors index
