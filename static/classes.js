@@ -192,6 +192,14 @@ class CUGraph {
         search.addEventListener("paste", f);
         search.addEventListener("input", f);
 
+        // advanced filters
+        let advFilters = document
+            .getElementById("advanced-filters")
+            .getElementsByTagName('input');
+        for (let filter of advFilters) {
+            filter.addEventListener("change", ev => this.applyFilters());
+        }
+
         // add classes groups in the dropdown list
         Object.keys(classGroups).forEach(function (k) {
             let opt = document.createElement('option');
@@ -367,10 +375,26 @@ class CUGraph {
                 return groupFilter && semesterFilter;
             }
         } else {
+            // find if level filter used
+            let lvlSelected = Array(6)
+                .fill()
+                .map((_, i) =>
+                    document.getElementById("l" + (i+1) + "000").checked);
+            let lvlUsed = lvlSelected.find(v => v);
+
+            // filter function
             filterFunc = function (code, node) {
                 let codeFilter = node.data.department_code === code;
+
+                // level filter
+                var levelFilter = true;
+                if (lvlUsed) {
+                    let lvl = parseInt(node.data.course_code.slice(-4)[0]);
+                    levelFilter = lvlSelected[lvl-1];
+                }
+
                 // let semesterFilter = node.data.schedule[semester] !== undefined || semester === "all";
-                return codeFilter && semesterFilter;
+                return codeFilter && semesterFilter && levelFilter;
             }
         }
 
