@@ -1,5 +1,7 @@
 # This is Scrapy crawler script that gets the data from Columbia University website, Wikipedia, culpa.info, etc
 
+# DEPRECATED use columbia-data project
+
 import json
 import html
 import scrapy
