@@ -3,8 +3,12 @@
 class CUGraph {
     constructor() {
         this.id2node = {};
+        this.aniOpt = {
+            duration: 200
+        };
     }
 
+    /* executed on loading a semester */
     loadColumbiaGraph() {
         let me = this;
         // index by id
@@ -35,10 +39,6 @@ class CUGraph {
                 }
             ],
         });
-
-        let aniOpt = {
-            duration: 200
-        };
 
         /* Mouse over */
         let selectedNode = null;
@@ -100,7 +100,7 @@ class CUGraph {
                 style: {
                     opacity: 0.2,
                 }
-            }, aniOpt);
+            }, this.aniOpt);
 
             // bold nodes for related classes
             node.target.animate({
@@ -108,14 +108,14 @@ class CUGraph {
                     borderColor: "#2D3142",
                     borderWidth: 3
                 }
-            }, aniOpt);
+            }, this.aniOpt);
 
             // bold edges for related classes
             node.target.predecessors().edges().animate({
                 style: {
                     width: 4,
                 }
-            }, aniOpt);
+            }, this.aniOpt);
 
             // borders for related classes
             node.target.predecessors().nodes().animate({
@@ -123,7 +123,7 @@ class CUGraph {
                     borderColor: "#2D3142",
                     borderWidth: 3
                 }
-            }, aniOpt);
+            }, this.aniOpt);
         };
         this.cy.on('mouseover', 'node', showNodeDeps);
         this.cy.on('tap', 'node', showNodeDeps);
@@ -136,21 +136,21 @@ class CUGraph {
                 style: {
                     opacity: 1,
                 }
-            }, aniOpt);
+            }, this.aniOpt);
 
             // bold nodes for related classes
             node.target.animate({
                 style: {
                     borderWidth: 0
                 }
-            }, aniOpt);
+            }, this.aniOpt);
 
             // cancel bold lines for related classes
             node.target.predecessors().edges().animate({
                 style: {
                     width: 1,
                 }
-            }, aniOpt);
+            }, this.aniOpt);
 
             // cancel borders for related classes
             node.target.predecessors().nodes().animate({
@@ -158,7 +158,7 @@ class CUGraph {
                     borderColor: "#2D3142",
                     borderWidth: 0
                 }
-            }, aniOpt);
+            }, this.aniOpt);
         };
         this.cy.on('mouseout', 'node', hideNodeDeps);
 
@@ -185,56 +185,12 @@ class CUGraph {
 
         // typing in search box
         let search = document.getElementById("search");
-        search.onkeypress = function (e) {
-            let term = e.target.value.trim().toUpperCase();
-            if (term === "") {
-                me.cy.nodes().animate({
-                        style: {
-                            backgroundColor: '#ABC4AB',
-                            borderWidth: 1
-                        }
-                    },
-                    aniOpt);
-                return;
-            }
-            let searchFunc = function (data) {
-                return data.course_code.includes(term)
-                    || data.course_title.toUpperCase().includes(term);
-            };
-            let found = me.cy.nodes().filter(node => searchFunc(node.data()));
-            if (found.length === 0 && e.key === "Enter") {
-                // nothing found, try other departments
-                elements.nodes.every(function (node, index) {
-                    if (searchFunc(node.data)) {
-                        console.log("found!" + node.data.code);
-                        sel.value = node.data.code;
-                        sel.dispatchEvent(new Event('change'));
-                        return false;
-                    }
-                    return true;
-                });
-                search.dispatchEvent(new Event('change'));
-                return;
-            }
-            let notFound = me.cy.nodes().not(found);
-            found.animate({
-                    style: {
-                        backgroundColor: '#ABD897',
-                        borderWidth: 1
-                    }
-                },
-                aniOpt);
-            notFound.animate({
-                    style: {
-                        backgroundColor: '#ABB0AB',
-                    }
-                },
-                aniOpt);
-
-        };
-        search.onchange = search.onkeypress;
-        search.onpaste = search.onkeypress;
-        search.oninput = search.onkeypress;
+        // search.onkeypress = this.onSearchKeyPress;
+        let f = ev => this.onSearchKeyPress(ev);
+        search.addEventListener("keypress", f);
+        search.addEventListener("change", f);
+        search.addEventListener("paste", f);
+        search.addEventListener("input", f);
 
         // add classes groups in the dropdown list
         Object.keys(classGroups).forEach(function (k) {
@@ -253,7 +209,7 @@ class CUGraph {
             sel.appendChild(opt);
         }
 
-        // show the dropdown list
+        // show departments dropdown list
         Object.keys(classCodes).forEach(function (k) {
             let opt = document.createElement('option');
             opt.appendChild(document.createTextNode(((classCodes[k] === k) ? "" : (k + ": ")) + classCodes[k]));
@@ -269,6 +225,56 @@ class CUGraph {
         }
 
         this.applyFilters();
+    }
+
+    onSearchKeyPress(e) {
+        let term = e.target.value.trim().toUpperCase();
+        if (term === "") {
+            this.cy.nodes().animate({
+                    style: {
+                        backgroundColor: '#ABC4AB',
+                        borderWidth: 1
+                    }
+                },
+                this.aniOpt);
+            return;
+        }
+        let searchFunc = function (data) {
+            return data.course_code.includes(term)
+                || data.course_title.toUpperCase().includes(term)
+                || data.instructors.find(instr => instr.toUpperCase().includes(term) );
+        };
+        let found = this.cy.nodes().filter(node => searchFunc(node.data()));
+        if (found.length === 0 && e.key === "Enter") {
+            // nothing found, try other departments
+            elements.nodes.every(function (node, index) {
+                if (searchFunc(node.data)) {
+                    console.log("found!" + node.data.department_code);
+                    let sel = document.getElementById("codesList");
+                    sel.value = node.data.department_code;
+                    sel.dispatchEvent(new Event('change'));
+                    return false;
+                }
+                return true;
+            });
+            search.dispatchEvent(new Event('change'));
+            return;
+        }
+        let notFound = this.cy.nodes().not(found);
+        found.animate({
+                style: {
+                    backgroundColor: '#ABD897',
+                    borderWidth: 1
+                }
+            },
+            this.aniOpt);
+        notFound.animate({
+                style: {
+                    backgroundColor: '#ABB0AB',
+                }
+            },
+            this.aniOpt);
+
     }
 
     loadSemesters() {
@@ -293,12 +299,12 @@ class CUGraph {
         slist.forEach(function (name) {
             sems.add({name: name, value: semesters[name]});
         });
-        sems.add({name: "all semesters", value: "all"});
+        // sems.add({name: "all semesters", value: "all"});
 
         // add semesters to dropdown list
         let semesterSel = document.getElementById("semesterList");
         sems = Array.from(sems);
-        sems.slice().reverse().forEach(function (sem) {
+        sems.forEach(function (sem) {
             let opt = document.createElement('option');
             opt.appendChild(document.createTextNode(sem.name));
             opt.value = sem.value;
@@ -315,11 +321,11 @@ class CUGraph {
             loadData("classes-" + semesterStr + ".js", ev => me.applyFilters());
         };
         let url = new URL(window.location.href);
-        let selectedSemester = url.searchParams.get("semester") || "all";
+        let selectedSemester = this.getSemesterId(url.searchParams.get("semester"));
         semesterSel.value = selectedSemester;
     }
 
-    /* Filters changes. If any parameter is undefined then pick the current one */
+    /* Filter changes. If any parameter is undefined then pick the current one. Updates URL */
     changeFilters(newParams) {
         let url = new URL(window.location.href);
         let allParams = ["code", "semester"];
@@ -343,11 +349,11 @@ class CUGraph {
             "?" + urlParams.join("&"));
     }
 
-    /* show classes by code or group */
+    /* show classes, filter, etc */
     applyFilters() {
         let url = new URL(window.location.href);
         let code = url.searchParams.get("code") || "COMS";
-        let semester = url.searchParams.get("semester") || "all";
+        let semester = this.getSemesterId(url.searchParams.get("semester"));
 
         let filterFunc;
         let groupKeyword = "group:";
@@ -419,8 +425,13 @@ class CUGraph {
     getSemesterId(semester) {
         let semesterStr;
         if (semester == undefined) {
-            // TODO: get current
-            semesterStr = "Spring-2020";
+            // compute current semester
+            let td = new Date();
+            let term = "Spring";
+            if (td.getMonth() >= 4) term = "Summer";
+            if (td.getMonth() >= 8) term = "Fall";
+
+            semesterStr = term + "-" + (td.getFullYear());
         } else {
             semesterStr = semester;
         }
@@ -444,9 +455,10 @@ function plural(count, noun) {
     }
 }
 
+var cug;
 // executed when this script is loaded
 (function() {
-    let cug = new CUGraph()
+    cug = new CUGraph()
     let url = new URL(window.location.href);
     let semesterStr = cug.getSemesterId(url.searchParams.get("semester"));
 

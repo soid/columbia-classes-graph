@@ -52,7 +52,7 @@ class Converter:
         self.codes.add(course['department_code'])
         if 'instructors' not in course:
             course['instructors'] = []
-        if course['instructor'] not in course['instructors']:
+        if course['instructor'] and course['instructor'] not in course['instructors']:
             course['instructors'].append(course['instructor'])
         data = {
             # crawled
