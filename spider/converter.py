@@ -54,9 +54,18 @@ class Converter:
             course['instructors'] = []
         if course['instructor'] and course['instructor'] not in course['instructors']:
             course['instructors'].append(course['instructor'])
+
+        # remove not important fields
+        important_fields = ['course_code', 'course_title', 'course_descr', 'call_number', 'course_subtitle',
+                            'department_code', 'points', 'prerequisites', 'scheduled_days', 'instructors']
+        nu_course = {}
+        for k in course.keys():
+            if k in important_fields:
+                nu_course[k] = course[k]
+
         data = {
             # crawled
-            **course,
+            **nu_course,
             # derived
             **{
                 'id': course['course_code'],
@@ -65,6 +74,7 @@ class Converter:
                 'size': 50,
             }
         }
+
         self.elements['nodes'].append({
             'data': data
         })

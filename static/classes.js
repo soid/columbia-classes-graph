@@ -200,6 +200,19 @@ class CUGraph {
             filter.addEventListener("change", ev => this.applyFilters());
         }
 
+        // more filters button
+        document.getElementById("more-filters-btn")
+            .addEventListener("click", ev=> {
+                let xs = document.getElementsByClassName("adv-filter");
+                for (let x of xs) {
+                    if (x.style.display === "none") {
+                        x.style.display = "inline";
+                    } else {
+                        x.style.display = "none";
+                    }
+                }
+            });
+
         // add classes groups in the dropdown list
         Object.keys(classGroups).forEach(function (k) {
             let opt = document.createElement('option');
