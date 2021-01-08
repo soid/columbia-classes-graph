@@ -382,6 +382,13 @@ class CUGraph {
                     document.getElementById("l" + (i+1) + "000").checked);
             let lvlUsed = lvlSelected.find(v => v);
 
+            // find day of week filters
+            let daySelected = Array(7)
+                .fill()
+                .map((_, i) =>
+                    document.getElementById("df" + i).checked);
+            let dayUsed = daySelected.find(v => v);
+
             // filter function
             filterFunc = function (code, node) {
                 let codeFilter = node.data.department_code === code;
@@ -393,8 +400,23 @@ class CUGraph {
                     levelFilter = lvlSelected[lvl-1];
                 }
 
+                // day filter
+                var dayFilter = true;
+                if (dayUsed && node.data.scheduled_days) {
+                    dayFilter = false;
+                    let alldays = "MTWRFSU";
+                    for (let i=0; i<7; i++) {
+                        if (daySelected[i]) {
+                            if (node.data.scheduled_days.includes(alldays[i])) {
+                                dayFilter = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 // let semesterFilter = node.data.schedule[semester] !== undefined || semester === "all";
-                return codeFilter && semesterFilter && levelFilter;
+                return codeFilter && semesterFilter && levelFilter && dayFilter;
             }
         }
 
