@@ -9,16 +9,77 @@ import os
 from helpers import get_semester_by_filename
 
 
+def lazy_read_json(filename: str):
+    """
+    Source code copied from https://github.com/soid/peqod/blob/5ded73e179c2092f80e1cd9955bcf3ec6773048d/catalog/courses/utils.py
+
+    :return generator returning (json_obj, pos, lenth)
+
+    >>> test_objs = [{'a': 11, 'b': 22, 'c': {'abc': 'z', 'zzz': {}}}, \
+                {'a': 31, 'b': 42, 'c': [{'abc': 'z', 'zzz': {}}]}, \
+                {'a': 55, 'b': 66, 'c': [{'abc': 'z'}, {'z': 3}, {'y': 3}]}, \
+                {'a': 71, 'b': 62, 'c': 63}]
+    >>> json_str = json.dumps(test_objs, indent=4, sort_keys=True)
+    >>> _create_file("/tmp/test.json", [json_str])
+    >>> g = lazy_read_json("/tmp/test.json")
+    >>> next(g)
+    ({'a': 11, 'b': 22, 'c': {'abc': 'z', 'zzz': {}}}, 120, 116)
+    >>> next(g)
+    ({'a': 31, 'b': 42, 'c': [{'abc': 'z', 'zzz': {}}]}, 274, 152)
+    >>> next(g)
+    ({'a': 55, 'b': 66, 'c': [{'abc': 'z'}, {'z': 3}, {'y': 3}]}, 505, 229)
+    >>> next(g)
+    ({'a': 71, 'b': 62, 'c': 63}, 567, 62)
+    >>> next(g)
+    Traceback (most recent call last):
+      ...
+    StopIteration
+    """
+    with open(filename) as fh:
+        state = 0
+        json_str = ''
+        cb_depth = 0  # curly brace depth
+        line = fh.readline()
+        while line:
+            if line[-1] == "\n":
+                line = line[:-1]
+            line_strip = line.strip()
+            if state == 0 and line == '[':
+                state = 1
+                pos = fh.tell()
+            elif state == 1 and line_strip == '{':
+                state = 2
+                json_str += line + "\n"
+            elif state == 2:
+                if len(line_strip) > 0 and line_strip[-1] == '{':  # count nested objects
+                    cb_depth += 1
+
+                json_str += line + "\n"
+                if cb_depth == 0 and (line_strip == '},' or line_strip == '}'):
+                    # end of parsing an object
+                    if json_str[-2:] == ",\n":
+                        json_str = json_str[:-2]  # remove trailing comma
+                    state = 1
+                    obj = json.loads(json_str)
+                    yield obj, pos, len(json_str)
+                    pos = fh.tell()
+                    json_str = ""
+                elif line_strip == '}' or line_strip == '},':
+                    cb_depth -= 1
+
+            line = fh.readline()
+
+
+
 class Converter:
     courseNumPattern = re.compile(r'^\w')
 
     @staticmethod
     def get_data(cu_data_path: str, file: str):
-        with open(cu_data_path + "/classes/" + file, 'r') as file:
-            data = []
-            for line in file:
-                data.append(json.loads(line))
-            return data
+        data = []
+        for row, _, _ in lazy_read_json(cu_data_path + "/classes/" + file):
+            data.append(row)
+        return data
 
     @staticmethod
     def get_data_files(cu_data_path: str):
@@ -109,7 +170,7 @@ class Converter:
         culpa_courses = {}
         for entry in data:
             courses.append(entry)
-            if entry['instructor_culpa_link']:
+            if 'instructor_culpa_link' in entry and entry['instructor_culpa_link']:
                 self.add_prof_info(entry['instructor'],
                                    count=entry['instructor_culpa_reviews_count'],
                                    culpa_id=link_re.search(entry["instructor_culpa_link"]).group(1))
